@@ -1,9 +1,13 @@
-const CACHE_NAME = "wedding-invitation-v1";
+const CACHE_NAME = "wedding-invitation-v2";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
+  "./editor.html",
   "./styles.css",
+  "./editor.css",
+  "./data.js",
   "./app.js",
+  "./editor.js",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];

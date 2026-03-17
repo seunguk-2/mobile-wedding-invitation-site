@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>모바일 청첩장 편집 페이지</title>
+    <meta
+      name="description"
+      content="모바일 청첩장 콘텐츠를 수정하는 편집 페이지입니다."
+    />
+    <meta name="theme-color" content="#f4e9df" />
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="editor.css" />
+    <script defer src="data.js"></script>
+    <script defer src="editor.js"></script>
+  </head>
+  <body class="editor-page">
+    <div class="background-bloom bloom-a" aria-hidden="true"></div>
+    <div class="background-bloom bloom-b" aria-hidden="true"></div>
+    <div class="background-grain" aria-hidden="true"></div>
+
+    <div class="shell editor-shell">
+      <header class="hero" id="top">
+        <div class="hero-card editor-hero">
+          <p class="hero-kicker">콘텐츠 편집</p>
+          <h1 class="section-title">모바일 청첩장 편집 페이지</h1>
+          <p class="section-note editor-note">
+            이 페이지에서 초대장 내용을 수정하고 저장할 수 있습니다. 현재 구성은 정적 GitHub Pages 기반이라 저장값은 이 브라우저에만 즉시 반영됩니다.
+          </p>
+          <div class="hero-actions editor-actions">
+            <a
+              class="secondary-button"
+              href="./index.html"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              초대장 미리 보기
+            </a>
+            <button class="primary-button" id="saveInvitationButton" type="button">
+              변경 내용 저장
+            </button>
+            <button class="secondary-button" id="resetInvitationButton" type="button">
+              기본값으로 복원
+            </button>
+            <button class="secondary-button" id="exportInvitationButton" type="button">
+              JSON 내보내기
+            </button>
+            <button class="secondary-button" id="importInvitationButton" type="button">
+              JSON 불러오기
+            </button>
+          </div>
+          <p class="save-note editor-status" id="editorStatus"></p>
+        </div>
+
+        <nav class="quick-nav" aria-label="편집 섹션 바로가기">
+          <a href="#basic">기본</a>
+          <a href="#family">양가 정보</a>
+          <a href="#schedule">예식 정보</a>
+          <a href="#guide">안내 문구</a>
+          <a href="#gallery">갤러리</a>
+          <a href="#story">우리의 여정</a>
+          <a href="#accounts">계좌 안내</a>
+        </nav>
+      </header>
+
+      <main class="editor-main">
+        <section class="section-card" id="basic">
+          <p class="section-tag">기본 정보</p>
+          <h2 class="section-title">초대장 전체 문구를 수정합니다</h2>
+          <p class="section-note">
+            제목, 첫 화면 문구, 갤러리 안내, 하단 감사 문구처럼 페이지 전반에서 쓰이는 텍스트입니다.
+          </p>
+          <div class="editor-fields" id="basicFields"></div>
+        </section>
+
+        <section class="section-card" id="family">
+          <p class="section-tag">양가 정보</p>
+          <h2 class="section-title">신랑측과 신부측 정보를 수정합니다</h2>
+          <div class="editor-split">
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">신랑측 정보</h3>
+              <div class="editor-fields" id="groomFields"></div>
+            </article>
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">신부측 정보</h3>
+              <div class="editor-fields" id="brideFields"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-card" id="schedule">
+          <p class="section-tag">예식 정보</p>
+          <h2 class="section-title">일시와 장소를 수정합니다</h2>
+          <p class="section-note">
+            요일과 카운트다운 시각은 저장 시 자동 계산됩니다.
+          </p>
+          <div class="editor-split">
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">예식 일시</h3>
+              <div class="editor-fields" id="ceremonyFields"></div>
+            </article>
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">예식 장소</h3>
+              <div class="editor-fields" id="venueFields"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-card" id="guide">
+          <p class="section-tag">안내 문구</p>
+          <h2 class="section-title">오시는 길과 공지 카드를 수정합니다</h2>
+          <div class="editor-stack">
+            <article class="editor-subpanel">
+              <div class="editor-panel-head">
+                <div>
+                  <h3 class="editor-subtitle">교통 및 이동 안내</h3>
+                  <p class="editor-panel-note">오시는 길 아래에 노출되는 카드들입니다.</p>
+                </div>
+              </div>
+              <div id="transportEditor"></div>
+            </article>
+            <article class="editor-subpanel">
+              <div class="editor-panel-head">
+                <div>
+                  <h3 class="editor-subtitle">추가 안내사항</h3>
+                  <p class="editor-panel-note">포토존, 식사, 아이 동반 안내 같은 카드들입니다.</p>
+                </div>
+              </div>
+              <div id="noticeEditor"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section-card" id="gallery">
+          <p class="section-tag">갤러리</p>
+          <h2 class="section-title">갤러리 카드 문구와 색상을 수정합니다</h2>
+          <p class="section-note">
+            현재는 사진 대신 감성 카드형 비주얼을 사용하므로 제목, 설명, 배경색 두 개를 함께 수정합니다.
+          </p>
+          <div id="galleryEditor"></div>
+        </section>
+
+        <section class="section-card" id="story">
+          <p class="section-tag">우리의 여정</p>
+          <h2 class="section-title">타임라인 문구를 수정합니다</h2>
+          <div id="timelineEditor"></div>
+        </section>
+
+        <section class="section-card" id="accounts">
+          <p class="section-tag">계좌 안내</p>
+          <h2 class="section-title">계좌 그룹과 항목을 수정합니다</h2>
+          <p class="section-note">
+            그룹 제목과 각 계좌의 역할, 예금주, 은행, 계좌번호를 직접 수정할 수 있습니다.
+          </p>
+          <div id="accountEditor"></div>
+        </section>
+      </main>
+    </div>
+
+    <input
+      class="editor-file-input"
+      id="importFileInput"
+      type="file"
+      accept=".json,application/json"
+    />
+    <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
+  </body>
+</html>

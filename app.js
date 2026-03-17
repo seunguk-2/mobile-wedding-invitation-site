@@ -1,174 +1,24 @@
 "use strict";
 
-const invitation = {
-  title: "민준과 서연의 모바일 청첩장",
-  invitationMessage:
-    "서로를 향한 따뜻한 마음으로 같은 길을 걷게 되었습니다. 기쁜 날, 소중한 분들을 모시고 감사의 마음을 전하고자 합니다. 편안한 걸음으로 오셔서 두 사람의 시작을 함께 축복해 주세요.",
-  groom: {
-    fullName: "김민준",
-    name: "민준",
-    father: "김영호",
-    mother: "이정숙",
-    phone: "01012345678",
-    parentPhone: "01023456789",
-  },
-  bride: {
-    fullName: "박서연",
-    name: "서연",
-    father: "박성민",
-    mother: "최은경",
-    phone: "01034567890",
-    parentPhone: "01045678901",
-  },
-  ceremony: {
-    year: 2026,
-    month: 10,
-    day: 24,
-    weekday: "토요일",
-    meridiem: "오후",
-    hour: 1,
-    minute: 0,
-    iso: "2026-10-24T13:00:00+09:00",
-    description: "예식 시작 30분 전부터 여유롭게 입장하실 수 있습니다.",
-  },
-  venue: {
-    name: "라온제나 그랜드홀",
-    hall: "7층 그레이스홀",
-    address: "서울특별시 중구 세종대로 110",
-    detail: "서울시청역 5번 출구에서 도보 3분",
-  },
-  transport: [
-    {
-      title: "지하철 안내",
-      body: "1호선과 2호선 시청역 5번 출구에서 도보 3분 거리입니다.",
-    },
-    {
-      title: "주차 안내",
-      body: "건물 지하주차장 이용 시 2시간 무료 주차가 가능합니다.",
-    },
-    {
-      title: "식사 안내",
-      body: "예식 후 같은 층 연회장에서 식사가 준비되어 있습니다.",
-    },
-    {
-      title: "셔틀 안내",
-      body: "서울역 3번 출구 앞에서 20분 간격으로 셔틀이 운행됩니다.",
-    },
-  ],
-  notices: [
-    {
-      title: "포토존",
-      body: "입구 포토월에서 사진을 남기실 수 있도록 포토존을 준비했습니다.",
-    },
-    {
-      title: "아이 동반",
-      body: "아이와 함께 오시는 분들을 위해 수유실과 휴게 공간이 마련되어 있습니다.",
-    },
-    {
-      title: "예식 순서",
-      body: "본식 이후 간단한 감사 인사와 케이크 커팅이 이어질 예정입니다.",
-    },
-    {
-      title: "마음 전하실 곳",
-      body: "참석이 어려우신 분들을 위해 아래에 계좌번호를 함께 안내드립니다.",
-    },
-  ],
-  gallery: [
-    {
-      title: "봄의 약속",
-      caption: "햇살이 가장 부드럽던 날, 서로의 계절이 시작되었습니다.",
-      tones: ["#d9b7a5", "#b46e5a"],
-    },
-    {
-      title: "여름의 온기",
-      caption: "눈을 마주치며 오래 웃던 순간을 담았습니다.",
-      tones: ["#d8c1a5", "#7a8d7e"],
-    },
-    {
-      title: "가을의 산책",
-      caption: "천천히 같은 방향으로 걸어가는 마음을 기록했습니다.",
-      tones: ["#cfa083", "#895643"],
-    },
-    {
-      title: "겨울의 대화",
-      caption: "조용한 이야기 속에서 더 단단해진 시간을 남겼습니다.",
-      tones: ["#ced6db", "#7a7b8c"],
-    },
-    {
-      title: "우리의 하루",
-      caption: "익숙한 웃음과 설렘이 한 장면 안에 머물렀습니다.",
-      tones: ["#f0d9cf", "#c58d7d"],
-    },
-    {
-      title: "함께라는 이름",
-      caption: "서로에게 가장 편안한 사람이 되어 가는 순간입니다.",
-      tones: ["#d4d0c3", "#8d735f"],
-    },
-  ],
-  timeline: [
-    {
-      step: "첫 만남",
-      title: "서로의 일상에 자연스럽게 스며든 날",
-      body: "바쁘게 지나가던 계절 속에서 닮은 웃음과 마음을 발견했습니다.",
-    },
-    {
-      step: "약속",
-      title: "평범한 하루를 특별하게 만든 고백",
-      body: "함께하는 미래를 이야기하며 오래 기억할 약속을 나누었습니다.",
-    },
-    {
-      step: "오늘",
-      title: "같은 방향을 바라보며 한 걸음을 내딛는 날",
-      body: "이제 두 사람은 가족이 되어 새로운 계절을 시작합니다.",
-    },
-  ],
-  accounts: [
-    {
-      label: "신랑측 마음 전하실 곳",
-      entries: [
-        {
-          role: "신랑",
-          holder: "김민준",
-          bank: "국민은행",
-          number: "123-4567-890123",
-        },
-        {
-          role: "혼주",
-          holder: "김영호",
-          bank: "신한은행",
-          number: "110-345-678901",
-        },
-      ],
-    },
-    {
-      label: "신부측 마음 전하실 곳",
-      entries: [
-        {
-          role: "신부",
-          holder: "박서연",
-          bank: "하나은행",
-          number: "357-910111-22207",
-        },
-        {
-          role: "혼주",
-          holder: "박성민",
-          bank: "우리은행",
-          number: "1002-945-112233",
-        },
-      ],
-    },
-  ],
-};
-
-const storageKey = "wedding-invitation-rsvp";
+const invitation = window.WeddingInvitationStore.getInvitation();
+const storageKey = window.WeddingInvitationStore.RSVP_STORAGE_KEY;
 
 const elements = {
+  metaDescription: document.querySelector('meta[name="description"]'),
   heroDate: document.getElementById("heroDate"),
   groomName: document.getElementById("groomName"),
   brideName: document.getElementById("brideName"),
   heroVenue: document.getElementById("heroVenue"),
+  heroMessage: document.getElementById("heroMessage"),
+  heroArtLabel: document.getElementById("heroArtLabel"),
+  heroArtCaption: document.getElementById("heroArtCaption"),
   heroMonogram: document.getElementById("heroMonogram"),
   invitationMessage: document.getElementById("invitationMessage"),
+  galleryNote: document.getElementById("galleryNote"),
+  accountNote: document.getElementById("accountNote"),
+  rsvpNote: document.getElementById("rsvpNote"),
+  footerTitle: document.getElementById("footerTitle"),
+  footerCopy: document.getElementById("footerCopy"),
   groomFullName: document.getElementById("groomFullName"),
   brideFullName: document.getElementById("brideFullName"),
   groomParents: document.getElementById("groomParents"),
@@ -233,12 +83,23 @@ function twoDigits(value) {
   return String(value).padStart(2, "0");
 }
 
+function joinNonEmpty(values, separator) {
+  return values.filter(Boolean).join(separator);
+}
+
+function ceremonyTimeText() {
+  const minute = Number(invitation.ceremony.minute) || 0;
+  return minute > 0
+    ? `${invitation.ceremony.meridiem} ${invitation.ceremony.hour}시 ${minute}분`
+    : `${invitation.ceremony.meridiem} ${invitation.ceremony.hour}시`;
+}
+
 function ceremonyText() {
-  return `${invitation.ceremony.year}년 ${invitation.ceremony.month}월 ${invitation.ceremony.day}일 ${invitation.ceremony.weekday} ${invitation.ceremony.meridiem} ${invitation.ceremony.hour}시`;
+  return `${invitation.ceremony.year}년 ${invitation.ceremony.month}월 ${invitation.ceremony.day}일 ${invitation.ceremony.weekday} ${ceremonyTimeText()}`;
 }
 
 function venueText() {
-  return `${invitation.venue.name} ${invitation.venue.hall}`;
+  return joinNonEmpty([invitation.venue.name, invitation.venue.hall], " ");
 }
 
 function showToast(message) {
@@ -278,17 +139,29 @@ async function copyText(value) {
 
 function fillBasicContent() {
   document.title = invitation.title;
+  if (elements.metaDescription) {
+    elements.metaDescription.content = invitation.invitationMessage;
+  }
+
   elements.heroDate.textContent = ceremonyText();
   elements.groomName.textContent = invitation.groom.name;
   elements.brideName.textContent = invitation.bride.name;
-  elements.heroVenue.textContent = `${venueText()} · ${invitation.venue.detail}`;
-  elements.heroMonogram.textContent = `${invitation.groom.name.charAt(0)} ${invitation.bride.name.charAt(0)}`;
+  elements.heroVenue.textContent = joinNonEmpty([venueText(), invitation.venue.detail], " · ");
+  elements.heroMessage.textContent = invitation.ui.heroMessage;
+  elements.heroArtLabel.textContent = invitation.ui.heroArtLabel;
+  elements.heroArtCaption.textContent = invitation.ui.heroArtCaption;
+  elements.heroMonogram.textContent = `${invitation.groom.name.charAt(0)} ${invitation.bride.name.charAt(0)}`.trim();
   elements.invitationMessage.textContent = invitation.invitationMessage;
+  elements.galleryNote.textContent = invitation.ui.galleryNote;
+  elements.accountNote.textContent = invitation.ui.accountNote;
+  elements.rsvpNote.textContent = invitation.ui.rsvpNote;
+  elements.footerTitle.textContent = invitation.ui.footerTitle;
+  elements.footerCopy.textContent = invitation.ui.footerCopy;
 
   elements.groomFullName.textContent = invitation.groom.fullName;
   elements.brideFullName.textContent = invitation.bride.fullName;
-  elements.groomParents.textContent = `${invitation.groom.father} · ${invitation.groom.mother}의 장남`;
-  elements.brideParents.textContent = `${invitation.bride.father} · ${invitation.bride.mother}의 장녀`;
+  elements.groomParents.textContent = `${invitation.groom.father} · ${invitation.groom.mother}의 ${invitation.groom.relationship}`;
+  elements.brideParents.textContent = `${invitation.bride.father} · ${invitation.bride.mother}의 ${invitation.bride.relationship}`;
 
   elements.groomPhoneLink.href = `tel:${invitation.groom.phone}`;
   elements.groomPhoneLink.textContent = `신랑 ${formatPhone(invitation.groom.phone)}`;
@@ -305,7 +178,7 @@ function fillBasicContent() {
   elements.venueAddress.textContent = invitation.venue.address;
 
   elements.mapVenueName.textContent = invitation.venue.name;
-  elements.locationAddress.textContent = `${venueText()} · ${invitation.venue.address}`;
+  elements.locationAddress.textContent = joinNonEmpty([venueText(), invitation.venue.address], " · ");
   elements.locationDetail.textContent = invitation.venue.detail;
 }
 
@@ -518,7 +391,7 @@ function renderAccounts() {
 }
 
 function buildMapLinks() {
-  const query = encodeURIComponent(`${invitation.venue.name} ${invitation.venue.address}`);
+  const query = encodeURIComponent(joinNonEmpty([invitation.venue.name, invitation.venue.address], " "));
   elements.kakaoMapLink.href = `https://map.kakao.com/link/search/${query}`;
   elements.naverMapLink.href = `https://map.naver.com/p/search/${query}`;
   elements.googleMapLink.href = `https://www.google.com/maps/search/?api=1&query=${query}`;
@@ -664,7 +537,7 @@ function bindEvents() {
   elements.bottomShareButton.addEventListener("click", shareInvitation);
 
   elements.copyAddressButton.addEventListener("click", async () => {
-    const succeeded = await copyText(`${venueText()} ${invitation.venue.address}`);
+    const succeeded = await copyText(joinNonEmpty([venueText(), invitation.venue.address], " "));
     showToast(succeeded ? "주소를 복사했습니다" : "복사에 실패했습니다");
   });
 
@@ -674,6 +547,12 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !elements.lightbox.hidden) {
       closeLightbox();
+    }
+  });
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === window.WeddingInvitationStore.CONTENT_STORAGE_KEY) {
+      window.location.reload();
     }
   });
 }
