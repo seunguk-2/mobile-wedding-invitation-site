@@ -185,6 +185,7 @@ function buildGitHubHeaders(config) {
     Accept: "application/vnd.github+json",
     Authorization: `Bearer ${config.githubToken}`,
     "Content-Type": "application/json",
+    "User-Agent": "mobile-wedding-invitation-site-publisher",
     "X-GitHub-Api-Version": "2022-11-28",
   };
 }
