@@ -3,7 +3,11 @@
 (function attachInvitationStore() {
   const CONTENT_STORAGE_KEY = "wedding-invitation-content-v1";
   const RSVP_STORAGE_KEY = "wedding-invitation-rsvp";
+  const PUBLISH_SETTINGS_STORAGE_KEY = "wedding-invitation-publish-settings-v1";
+  const PUBLISHED_CONTENT_PATH = "content.json";
   const WEEKDAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+
+  let publishedInvitationCache = null;
 
   const DEFAULT_INVITATION = {
     title: "민준과 서연의 모바일 청첩장",
@@ -14,7 +18,7 @@
       heroArtLabel: "서로의 계절이 되어",
       heroArtCaption: "소중한 날을 함께 축복해 주세요",
       galleryNote:
-        "웨딩 사진을 넣기 전에도 자연스럽게 보이도록 감성 카드형 레이아웃으로 구성했습니다.",
+        "웨딩 사진을 넣어 따뜻한 순간들을 담아보세요. 갤러리 이미지는 확대 없이 카드 형태로만 보여집니다.",
       accountNote: "참석이 어려우신 분들을 위해 계좌번호를 함께 안내드립니다.",
       rsvpNote: "현재는 예시용 폼으로 동작하며, 입력 내용은 이 기기에만 저장됩니다.",
       footerTitle: "민준과 서연의 결혼식에 와 주셔서 감사합니다",
@@ -92,33 +96,45 @@
     gallery: [
       {
         title: "봄의 약속",
-        caption: "햇살이 가장 부드럽던 날, 서로의 계절이 시작되었습니다.",
+        caption: "첫 업로드용 사진을 넣으면 이 카드가 실제 이미지로 바뀝니다.",
         tones: ["#d9b7a5", "#b46e5a"],
+        image: "",
+        alt: "봄의 약속 갤러리 이미지",
       },
       {
         title: "여름의 온기",
-        caption: "눈을 마주치며 오래 웃던 순간을 담았습니다.",
+        caption: "사진이 없을 때는 감성 카드형 배경으로 표시됩니다.",
         tones: ["#d8c1a5", "#7a8d7e"],
+        image: "",
+        alt: "여름의 온기 갤러리 이미지",
       },
       {
         title: "가을의 산책",
-        caption: "천천히 같은 방향으로 걸어가는 마음을 기록했습니다.",
+        caption: "업로드한 사진은 확대 모달 없이 카드로만 노출됩니다.",
         tones: ["#cfa083", "#895643"],
+        image: "",
+        alt: "가을의 산책 갤러리 이미지",
       },
       {
         title: "겨울의 대화",
-        caption: "조용한 이야기 속에서 더 단단해진 시간을 남겼습니다.",
+        caption: "카드 제목과 설명은 사진 위 오버레이로 유지됩니다.",
         tones: ["#ced6db", "#7a7b8c"],
+        image: "",
+        alt: "겨울의 대화 갤러리 이미지",
       },
       {
         title: "우리의 하루",
-        caption: "익숙한 웃음과 설렘이 한 장면 안에 머물렀습니다.",
+        caption: "모바일 화면에서도 세로형 카드 비율을 유지합니다.",
         tones: ["#f0d9cf", "#c58d7d"],
+        image: "",
+        alt: "우리의 하루 갤러리 이미지",
       },
       {
         title: "함께라는 이름",
-        caption: "서로에게 가장 편안한 사람이 되어 가는 순간입니다.",
+        caption: "나중에 다시 편집 페이지에서 언제든 이미지를 교체할 수 있습니다.",
         tones: ["#d4d0c3", "#8d735f"],
+        image: "",
+        alt: "함께라는 이름 갤러리 이미지",
       },
     ],
     timeline: [
@@ -272,16 +288,17 @@
         title: "",
         caption: "",
         tones: ["#d9b7a5", "#b46e5a"],
+        image: "",
+        alt: "",
       };
       const tones = Array.isArray(item && item.tones) ? item.tones : [];
 
       return {
         title: asText(item && item.title, base.title),
         caption: asText(item && item.caption, base.caption),
-        tones: [
-          asColor(tones[0], base.tones[0]),
-          asColor(tones[1], base.tones[1]),
-        ],
+        tones: [asColor(tones[0], base.tones[0]), asColor(tones[1], base.tones[1])],
+        image: asText(item && item.image, base.image),
+        alt: asText(item && item.alt, base.alt),
       };
     });
   }
@@ -398,9 +415,57 @@
     }
   }
 
-  function getInvitation() {
-    const stored = getStoredInvitation();
-    return prepareInvitation(stored || DEFAULT_INVITATION);
+  async function fetchPublishedInvitation(options) {
+    const settings = options || {};
+    if (!settings.force && publishedInvitationCache) {
+      return clone(publishedInvitationCache);
+    }
+
+    if (!window.fetch) {
+      return null;
+    }
+
+    try {
+      const response = await window.fetch(`${PUBLISHED_CONTENT_PATH}?ts=${Date.now()}`, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const json = await response.json();
+      publishedInvitationCache = prepareInvitation(json);
+      return clone(publishedInvitationCache);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async function loadInvitation(options) {
+    const settings = options || {};
+    const preferLocal = settings.preferLocal !== false;
+
+    if (preferLocal) {
+      const local = getStoredInvitation();
+      if (local) {
+        return prepareInvitation(local);
+      }
+    }
+
+    const published = await fetchPublishedInvitation(settings);
+    if (published) {
+      return published;
+    }
+
+    if (!preferLocal) {
+      const local = getStoredInvitation();
+      if (local) {
+        return prepareInvitation(local);
+      }
+    }
+
+    return prepareInvitation(DEFAULT_INVITATION);
   }
 
   function saveInvitation(invitation) {
@@ -424,7 +489,7 @@
   }
 
   function exportInvitation(invitation) {
-    return JSON.stringify(prepareInvitation(invitation || getInvitation()), null, 2);
+    return JSON.stringify(prepareInvitation(invitation || DEFAULT_INVITATION), null, 2);
   }
 
   function importInvitation(rawText) {
@@ -432,22 +497,52 @@
     return saveInvitation(parsed);
   }
 
+  function getPublishSettings() {
+    try {
+      const raw = window.localStorage.getItem(PUBLISH_SETTINGS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function savePublishSettings(settings) {
+    try {
+      window.localStorage.setItem(PUBLISH_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   window.WeddingInvitationStore = {
     CONTENT_STORAGE_KEY,
     RSVP_STORAGE_KEY,
+    PUBLISH_SETTINGS_STORAGE_KEY,
+    PUBLISHED_CONTENT_PATH,
     createDefaultInvitation() {
       return clone(prepareInvitation(DEFAULT_INVITATION));
     },
     cloneInvitation(invitation) {
-      return clone(prepareInvitation(invitation || getInvitation()));
+      return clone(prepareInvitation(invitation || DEFAULT_INVITATION));
     },
-    getInvitation,
+    getInvitation() {
+      const local = getStoredInvitation();
+      return prepareInvitation(local || publishedInvitationCache || DEFAULT_INVITATION);
+    },
+    loadInvitation,
+    fetchPublishedInvitation,
     saveInvitation,
     clearInvitation,
     exportInvitation,
     importInvitation,
+    getPublishSettings,
+    savePublishSettings,
     hasSavedInvitation() {
       return Boolean(getStoredInvitation());
+    },
+    clearPublishedCache() {
+      publishedInvitationCache = null;
     },
   };
 })();

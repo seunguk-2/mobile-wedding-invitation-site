@@ -1,6 +1,6 @@
 "use strict";
 
-const invitation = window.WeddingInvitationStore.getInvitation();
+let invitation = null;
 const storageKey = window.WeddingInvitationStore.RSVP_STORAGE_KEY;
 
 const elements = {
@@ -53,13 +53,6 @@ const elements = {
   accountList: document.getElementById("accountList"),
   shareButton: document.getElementById("shareButton"),
   bottomShareButton: document.getElementById("bottomShareButton"),
-  lightbox: document.getElementById("lightbox"),
-  lightboxBackdrop: document.getElementById("lightboxBackdrop"),
-  lightboxClose: document.getElementById("lightboxClose"),
-  lightboxArt: document.getElementById("lightboxArt"),
-  lightboxIndex: document.getElementById("lightboxIndex"),
-  lightboxTitle: document.getElementById("lightboxTitle"),
-  lightboxCaption: document.getElementById("lightboxCaption"),
   toast: document.getElementById("toast"),
   rsvpForm: document.getElementById("rsvpForm"),
   resetRsvpButton: document.getElementById("resetRsvpButton"),
@@ -77,10 +70,6 @@ function formatPhone(value) {
     return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
   }
   return value;
-}
-
-function twoDigits(value) {
-  return String(value).padStart(2, "0");
 }
 
 function joinNonEmpty(values, separator) {
@@ -252,16 +241,23 @@ function updateCountdown() {
 function renderGallery() {
   elements.galleryGrid.innerHTML = "";
 
-  invitation.gallery.forEach((item, index) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "gallery-card";
-    button.style.setProperty("--tone-a", item.tones[0]);
-    button.style.setProperty("--tone-b", item.tones[1]);
+  invitation.gallery.forEach((item) => {
+    const article = document.createElement("article");
+    article.className = "gallery-card";
+    article.style.setProperty("--tone-a", item.tones[0]);
+    article.style.setProperty("--tone-b", item.tones[1]);
 
-    const number = document.createElement("span");
-    number.className = "gallery-index";
-    number.textContent = `${twoDigits(index + 1)}`;
+    if (item.image) {
+      article.classList.add("has-image");
+      const image = document.createElement("img");
+      image.className = "gallery-image";
+      image.src = item.image;
+      image.alt = item.alt || item.title;
+      image.draggable = false;
+      image.loading = "lazy";
+      image.decoding = "async";
+      article.appendChild(image);
+    }
 
     const copy = document.createElement("span");
     copy.className = "gallery-copy";
@@ -275,10 +271,8 @@ function renderGallery() {
     caption.textContent = item.caption;
 
     copy.append(title, caption);
-    button.append(number, copy);
-    button.addEventListener("click", () => openLightbox(item, index));
-
-    elements.galleryGrid.appendChild(button);
+    article.appendChild(copy);
+    elements.galleryGrid.appendChild(article);
   });
 }
 
@@ -395,21 +389,6 @@ function buildMapLinks() {
   elements.kakaoMapLink.href = `https://map.kakao.com/link/search/${query}`;
   elements.naverMapLink.href = `https://map.naver.com/p/search/${query}`;
   elements.googleMapLink.href = `https://www.google.com/maps/search/?api=1&query=${query}`;
-}
-
-function openLightbox(item, index) {
-  elements.lightboxArt.style.setProperty("--tone-a", item.tones[0]);
-  elements.lightboxArt.style.setProperty("--tone-b", item.tones[1]);
-  elements.lightboxIndex.textContent = `${twoDigits(index + 1)} / ${twoDigits(invitation.gallery.length)}`;
-  elements.lightboxTitle.textContent = item.title;
-  elements.lightboxCaption.textContent = item.caption;
-  elements.lightbox.hidden = false;
-  document.body.classList.add("is-modal-open");
-}
-
-function closeLightbox() {
-  elements.lightbox.hidden = true;
-  document.body.classList.remove("is-modal-open");
 }
 
 async function shareInvitation() {
@@ -541,18 +520,17 @@ function bindEvents() {
     showToast(succeeded ? "주소를 복사했습니다" : "복사에 실패했습니다");
   });
 
-  elements.lightboxClose.addEventListener("click", closeLightbox);
-  elements.lightboxBackdrop.addEventListener("click", closeLightbox);
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !elements.lightbox.hidden) {
-      closeLightbox();
-    }
-  });
-
-  window.addEventListener("storage", (event) => {
+  window.addEventListener("storage", async (event) => {
     if (event.key === window.WeddingInvitationStore.CONTENT_STORAGE_KEY) {
-      window.location.reload();
+      invitation = await window.WeddingInvitationStore.loadInvitation();
+      fillBasicContent();
+      renderCalendar();
+      updateCountdown();
+      renderGallery();
+      renderTimeline();
+      renderTransportAndNotices();
+      renderAccounts();
+      buildMapLinks();
     }
   });
 }
@@ -573,7 +551,8 @@ function registerServiceWorker() {
   });
 }
 
-function init() {
+async function init() {
+  invitation = await window.WeddingInvitationStore.loadInvitation();
   fillBasicContent();
   renderCalendar();
   updateCountdown();

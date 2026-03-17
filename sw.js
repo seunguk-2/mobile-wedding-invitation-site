@@ -1,4 +1,4 @@
-const CACHE_NAME = "wedding-invitation-v2";
+const CACHE_NAME = "wedding-invitation-v3";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -8,9 +8,56 @@ const STATIC_ASSETS = [
   "./data.js",
   "./app.js",
   "./editor.js",
+  "./content.json",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];
+
+function isCacheableResponse(response) {
+  return Boolean(response) && response.status === 200 && response.type === "basic";
+}
+
+function buildCacheKey(request) {
+  const url = new URL(request.url);
+  if (url.pathname.endsWith("/content.json") || url.pathname.includes("/uploads/")) {
+    return `${url.origin}${url.pathname}`;
+  }
+  return request;
+}
+
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cacheKey = buildCacheKey(request);
+
+  try {
+    const response = await fetch(request);
+    if (isCacheableResponse(response)) {
+      cache.put(cacheKey, response.clone());
+    }
+    return response;
+  } catch (error) {
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      return cached;
+    }
+    throw error;
+  }
+}
+
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cacheKey = buildCacheKey(request);
+  const cached = await cache.match(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const response = await fetch(request);
+  if (isCacheableResponse(response)) {
+    cache.put(cacheKey, response.clone());
+  }
+  return response;
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -32,23 +79,31 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  const isContentRequest = url.pathname.endsWith("/content.json");
+  const isUploadRequest = url.pathname.includes("/uploads/");
+
+  if (isContentRequest || isUploadRequest) {
+    event.respondWith(
+      networkFirst(event.request).catch(async () => {
+        const cached = await caches.match(buildCacheKey(event.request));
+        return cached || Response.error();
+      }),
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) {
-        return cached;
+    cacheFirst(event.request).catch(async () => {
+      if (event.request.mode === "navigate") {
+        const cachedIndex = await caches.match("./index.html");
+        return cachedIndex || Response.error();
       }
-
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type !== "basic") {
-            return response;
-          }
-
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return response;
-        })
-        .catch(() => caches.match("./index.html"));
+      return Response.error();
     }),
   );
 });

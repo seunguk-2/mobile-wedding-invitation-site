@@ -29,7 +29,7 @@
           <p class="hero-kicker">콘텐츠 편집</p>
           <h1 class="section-title">모바일 청첩장 편집 페이지</h1>
           <p class="section-note editor-note">
-            이 페이지에서 초대장 내용을 수정하고 저장할 수 있습니다. 현재 구성은 정적 GitHub Pages 기반이라 저장값은 이 브라우저에만 즉시 반영됩니다.
+            이 페이지에서 초대장 초안을 저장하고, 원하면 GitHub Pages 공개 페이지까지 바로 발행할 수 있습니다. `저장`은 이 기기 초안용이고 `공개 발행`은 공유 링크에 반영됩니다.
           </p>
           <div class="hero-actions editor-actions">
             <a
@@ -57,6 +57,7 @@
         </div>
 
         <nav class="quick-nav" aria-label="편집 섹션 바로가기">
+          <a href="#publish">발행</a>
           <a href="#basic">기본</a>
           <a href="#family">양가 정보</a>
           <a href="#schedule">예식 정보</a>
@@ -68,6 +69,103 @@
       </header>
 
       <main class="editor-main">
+        <section class="section-card" id="publish">
+          <p class="section-tag">공개 발행</p>
+          <h2 class="section-title">공유 링크에 바로 반영합니다</h2>
+          <p class="section-note">
+            갤러리 이미지는 저장소 `uploads/` 경로로 업로드되고, 초대장 내용은 `content.json`으로 갱신됩니다. GitHub 토큰은 이 탭에만 보관됩니다.
+          </p>
+          <div class="editor-split">
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">GitHub 연결</h3>
+              <div class="editor-fields">
+                <label class="field">
+                  <span>GitHub 토큰</span>
+                  <input
+                    id="publishToken"
+                    type="password"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder="저장소 내용을 수정할 수 있는 토큰"
+                  />
+                </label>
+                <label class="field">
+                  <span>저장소 소유자</span>
+                  <input
+                    id="publishOwner"
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder="예: seunguk-2"
+                  />
+                </label>
+                <label class="field">
+                  <span>저장소 이름</span>
+                  <input
+                    id="publishRepo"
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder="예: mobile-wedding-invitation-site"
+                  />
+                </label>
+                <label class="field">
+                  <span>브랜치</span>
+                  <input
+                    id="publishBranch"
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder="main"
+                  />
+                </label>
+                <label class="field">
+                  <span>커밋 메시지</span>
+                  <input
+                    id="publishCommitMessage"
+                    type="text"
+                    placeholder="모바일 청첩장 내용 업데이트"
+                  />
+                </label>
+              </div>
+              <div class="editor-action-row">
+                <button class="primary-button" id="publishInvitationButton" type="button">
+                  공유 페이지에 발행하기
+                </button>
+                <button class="secondary-button" id="reloadPublishedButton" type="button">
+                  현재 공개본 다시 불러오기
+                </button>
+              </div>
+              <p class="save-note editor-status" id="publishStatus"></p>
+            </article>
+
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">발행 전 확인</h3>
+              <div class="editor-checklist">
+                <p>새로 선택한 사진 파일은 `공유 페이지에 발행하기`를 눌러야 실제 사이트에 업로드됩니다.</p>
+                <p>갤러리 이미지는 확대 모달 없이 카드로만 노출됩니다.</p>
+                <p>GitHub Pages 반영에는 보통 1~2분 정도 걸릴 수 있습니다.</p>
+              </div>
+              <p class="section-note editor-link-note">
+                공개 주소
+                <a
+                  class="editor-link"
+                  id="publishPreviewLink"
+                  href="./index.html"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  초대장 페이지 열기
+                </a>
+              </p>
+            </article>
+          </div>
+        </section>
+
         <section class="section-card" id="basic">
           <p class="section-tag">기본 정보</p>
           <h2 class="section-title">초대장 전체 문구를 수정합니다</h2>
@@ -137,9 +235,9 @@
 
         <section class="section-card" id="gallery">
           <p class="section-tag">갤러리</p>
-          <h2 class="section-title">갤러리 카드 문구와 색상을 수정합니다</h2>
+          <h2 class="section-title">갤러리 문구와 이미지를 수정합니다</h2>
           <p class="section-note">
-            현재는 사진 대신 감성 카드형 비주얼을 사용하므로 제목, 설명, 배경색 두 개를 함께 수정합니다.
+            각 카드마다 실제 이미지를 선택해 업로드할 수 있습니다. 이미지가 없으면 배경색 카드형 비주얼이 유지됩니다.
           </p>
           <div id="galleryEditor"></div>
         </section>

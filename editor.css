@@ -16,7 +16,10 @@
 
 .editor-note,
 .editor-panel-note,
-.editor-empty {
+.editor-empty,
+.editor-help,
+.editor-checklist p,
+.editor-link-note {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.7;
@@ -73,6 +76,36 @@
 .editor-entry-list {
   display: grid;
   gap: 12px;
+}
+
+.editor-checklist {
+  display: grid;
+  gap: 10px;
+}
+
+.editor-gallery-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.editor-preview-card {
+  max-width: 240px;
+}
+
+.editor-image-meta {
+  display: grid;
+  gap: 10px;
+}
+
+.editor-help {
+  margin-top: -2px;
+}
+
+.editor-link {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .editor-item {

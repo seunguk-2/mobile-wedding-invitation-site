@@ -1,8 +1,14 @@
 "use strict";
 
 const store = window.WeddingInvitationStore;
-let invitation = store.cloneInvitation();
+const TOKEN_SESSION_KEY = "wedding-invitation-publish-token-v1";
+const DEFAULT_BRANCH = "main";
+const DEFAULT_COMMIT_MESSAGE = "모바일 청첩장 내용 업데이트";
+const GITHUB_API_VERSION = "2022-11-28";
+
+let invitation = store.createDefaultInvitation();
 let toastTimer = 0;
+const pendingGalleryFiles = [];
 
 const elements = {
   basicFields: document.getElementById("basicFields"),
@@ -21,6 +27,15 @@ const elements = {
   importInvitationButton: document.getElementById("importInvitationButton"),
   importFileInput: document.getElementById("importFileInput"),
   editorStatus: document.getElementById("editorStatus"),
+  publishToken: document.getElementById("publishToken"),
+  publishOwner: document.getElementById("publishOwner"),
+  publishRepo: document.getElementById("publishRepo"),
+  publishBranch: document.getElementById("publishBranch"),
+  publishCommitMessage: document.getElementById("publishCommitMessage"),
+  publishInvitationButton: document.getElementById("publishInvitationButton"),
+  reloadPublishedButton: document.getElementById("reloadPublishedButton"),
+  publishStatus: document.getElementById("publishStatus"),
+  publishPreviewLink: document.getElementById("publishPreviewLink"),
   toast: document.getElementById("toast"),
 };
 
@@ -43,6 +58,10 @@ function updateStatus(message) {
   elements.editorStatus.textContent = message;
 }
 
+function updatePublishStatus(message) {
+  elements.publishStatus.textContent = message;
+}
+
 function createFieldShell(labelText) {
   const wrapper = document.createElement("label");
   wrapper.className = "field";
@@ -54,6 +73,13 @@ function createFieldShell(labelText) {
   return wrapper;
 }
 
+function createHelpText(text) {
+  const note = document.createElement("p");
+  note.className = "editor-help";
+  note.textContent = text;
+  return note;
+}
+
 function createInputField(spec) {
   const wrapper = createFieldShell(spec.label);
   const input = document.createElement("input");
@@ -61,6 +87,9 @@ function createInputField(spec) {
   input.value = spec.value == null ? "" : String(spec.value);
   input.placeholder = spec.placeholder || "";
 
+  if (spec.accept) {
+    input.accept = spec.accept;
+  }
   if (spec.min != null) {
     input.min = String(spec.min);
   }
@@ -70,12 +99,18 @@ function createInputField(spec) {
   if (spec.step != null) {
     input.step = String(spec.step);
   }
+  if (spec.autocomplete) {
+    input.autocomplete = spec.autocomplete;
+  }
 
   input.addEventListener("input", (event) => {
     spec.onChange(event.target.value);
   });
 
   wrapper.appendChild(input);
+  if (spec.help) {
+    wrapper.appendChild(createHelpText(spec.help));
+  }
   return wrapper;
 }
 
@@ -89,6 +124,9 @@ function createTextareaField(spec) {
     spec.onChange(event.target.value);
   });
   wrapper.appendChild(input);
+  if (spec.help) {
+    wrapper.appendChild(createHelpText(spec.help));
+  }
   return wrapper;
 }
 
@@ -111,6 +149,9 @@ function createSelectField(spec) {
   });
 
   wrapper.appendChild(select);
+  if (spec.help) {
+    wrapper.appendChild(createHelpText(spec.help));
+  }
   return wrapper;
 }
 
@@ -169,6 +210,447 @@ function appendFields(container, fields) {
   fields.forEach((field) => {
     container.appendChild(field);
   });
+}
+
+function getPendingGalleryFile(index) {
+  return pendingGalleryFiles[index] || null;
+}
+
+function clearPendingGalleryFile(index) {
+  const pending = getPendingGalleryFile(index);
+  if (pending && pending.previewUrl) {
+    URL.revokeObjectURL(pending.previewUrl);
+  }
+  pendingGalleryFiles[index] = null;
+}
+
+function clearAllPendingGalleryFiles() {
+  pendingGalleryFiles.forEach((_, index) => {
+    clearPendingGalleryFile(index);
+  });
+  pendingGalleryFiles.length = 0;
+}
+
+function countPendingGalleryFiles() {
+  return pendingGalleryFiles.reduce((count, item) => {
+    return item && item.file ? count + 1 : count;
+  }, 0);
+}
+
+function getGalleryPreviewSource(item, index) {
+  const pending = getPendingGalleryFile(index);
+  if (pending && pending.previewUrl) {
+    return pending.previewUrl;
+  }
+  return item.image || "";
+}
+
+function createGalleryPreviewCard(item, index) {
+  const article = document.createElement("article");
+  article.className = "gallery-card editor-preview-card";
+  article.style.setProperty("--tone-a", item.tones[0]);
+  article.style.setProperty("--tone-b", item.tones[1]);
+
+  const imageSource = getGalleryPreviewSource(item, index);
+  if (imageSource) {
+    article.classList.add("has-image");
+    const image = document.createElement("img");
+    image.className = "gallery-image";
+    image.src = imageSource;
+    image.alt = item.alt || item.title || `갤러리 ${index + 1} 이미지`;
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.draggable = false;
+    article.appendChild(image);
+  }
+
+  const copy = document.createElement("span");
+  copy.className = "gallery-copy";
+
+  const title = document.createElement("strong");
+  title.className = "gallery-title";
+  title.textContent = item.title || `갤러리 ${index + 1}`;
+
+  const caption = document.createElement("span");
+  caption.className = "gallery-caption";
+  caption.textContent = item.caption || "설명 문구를 입력하면 이곳에 표시됩니다.";
+
+  copy.append(title, caption);
+  article.appendChild(copy);
+
+  return article;
+}
+
+function createSerializableInvitation(source) {
+  const prepared = store.cloneInvitation(source);
+  return {
+    title: prepared.title,
+    invitationMessage: prepared.invitationMessage,
+    ui: {
+      heroMessage: prepared.ui.heroMessage,
+      heroArtLabel: prepared.ui.heroArtLabel,
+      heroArtCaption: prepared.ui.heroArtCaption,
+      galleryNote: prepared.ui.galleryNote,
+      accountNote: prepared.ui.accountNote,
+      rsvpNote: prepared.ui.rsvpNote,
+      footerTitle: prepared.ui.footerTitle,
+      footerCopy: prepared.ui.footerCopy,
+    },
+    groom: {
+      fullName: prepared.groom.fullName,
+      name: prepared.groom.name,
+      father: prepared.groom.father,
+      mother: prepared.groom.mother,
+      relationship: prepared.groom.relationship,
+      phone: prepared.groom.phone,
+      parentPhone: prepared.groom.parentPhone,
+    },
+    bride: {
+      fullName: prepared.bride.fullName,
+      name: prepared.bride.name,
+      father: prepared.bride.father,
+      mother: prepared.bride.mother,
+      relationship: prepared.bride.relationship,
+      phone: prepared.bride.phone,
+      parentPhone: prepared.bride.parentPhone,
+    },
+    ceremony: {
+      year: prepared.ceremony.year,
+      month: prepared.ceremony.month,
+      day: prepared.ceremony.day,
+      meridiem: prepared.ceremony.meridiem,
+      hour: prepared.ceremony.hour,
+      minute: prepared.ceremony.minute,
+      description: prepared.ceremony.description,
+    },
+    venue: {
+      name: prepared.venue.name,
+      hall: prepared.venue.hall,
+      address: prepared.venue.address,
+      detail: prepared.venue.detail,
+    },
+    transport: prepared.transport.map((item) => ({
+      title: item.title,
+      body: item.body,
+    })),
+    notices: prepared.notices.map((item) => ({
+      title: item.title,
+      body: item.body,
+    })),
+    gallery: prepared.gallery.map((item) => ({
+      title: item.title,
+      caption: item.caption,
+      tones: [item.tones[0], item.tones[1]],
+      image: item.image,
+      alt: item.alt,
+    })),
+    timeline: prepared.timeline.map((item) => ({
+      step: item.step,
+      title: item.title,
+      body: item.body,
+    })),
+    accounts: prepared.accounts.map((group) => ({
+      label: group.label,
+      entries: group.entries.map((entry) => ({
+        role: entry.role,
+        holder: entry.holder,
+        bank: entry.bank,
+        number: entry.number,
+      })),
+    })),
+  };
+}
+
+function exportInvitationJson() {
+  return `${JSON.stringify(createSerializableInvitation(invitation), null, 2)}\n`;
+}
+
+function trimText(value) {
+  return String(value || "").trim();
+}
+
+function getStoredPublishToken() {
+  try {
+    return window.sessionStorage.getItem(TOKEN_SESSION_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function storePublishToken(token) {
+  try {
+    if (token) {
+      window.sessionStorage.setItem(TOKEN_SESSION_KEY, token);
+      return;
+    }
+    window.sessionStorage.removeItem(TOKEN_SESSION_KEY);
+  } catch (error) {
+    return;
+  }
+}
+
+function guessPublishSettingsFromLocation() {
+  const hostname = window.location.hostname || "";
+  const guessed = {
+    owner: "",
+    repo: "",
+    branch: DEFAULT_BRANCH,
+    commitMessage: DEFAULT_COMMIT_MESSAGE,
+  };
+
+  if (!hostname.endsWith(".github.io")) {
+    return guessed;
+  }
+
+  guessed.owner = hostname.replace(/\.github\.io$/u, "");
+
+  const segments = window.location.pathname.split("/").filter(Boolean);
+  if (segments.length === 0 || segments[0].endsWith(".html")) {
+    guessed.repo = `${guessed.owner}.github.io`;
+  } else {
+    guessed.repo = segments[0];
+  }
+
+  return guessed;
+}
+
+function getPublishSettingsFromForm() {
+  return {
+    token: trimText(elements.publishToken.value),
+    owner: trimText(elements.publishOwner.value),
+    repo: trimText(elements.publishRepo.value),
+    branch: trimText(elements.publishBranch.value) || DEFAULT_BRANCH,
+    commitMessage: trimText(elements.publishCommitMessage.value) || DEFAULT_COMMIT_MESSAGE,
+  };
+}
+
+function persistPublishSettings() {
+  const settings = getPublishSettingsFromForm();
+  store.savePublishSettings({
+    owner: settings.owner,
+    repo: settings.repo,
+    branch: settings.branch,
+    commitMessage: settings.commitMessage,
+  });
+  storePublishToken(settings.token);
+  updatePublishPreviewLink();
+  return settings;
+}
+
+function buildPagesUrl(owner, repo) {
+  if (!owner || !repo) {
+    return "";
+  }
+
+  if (repo === `${owner}.github.io`) {
+    return `https://${owner}.github.io/`;
+  }
+
+  return `https://${owner}.github.io/${repo}/`;
+}
+
+function updatePublishPreviewLink() {
+  const settings = getPublishSettingsFromForm();
+  const previewUrl = buildPagesUrl(settings.owner, settings.repo);
+
+  if (!previewUrl) {
+    elements.publishPreviewLink.textContent = "저장소 정보를 입력하면 공개 주소가 표시됩니다.";
+    elements.publishPreviewLink.href = "./index.html";
+    return;
+  }
+
+  elements.publishPreviewLink.textContent = previewUrl;
+  elements.publishPreviewLink.href = previewUrl;
+}
+
+function hydratePublishSettings() {
+  const guessed = guessPublishSettingsFromLocation();
+  const saved = store.getPublishSettings() || {};
+
+  elements.publishOwner.value = saved.owner || guessed.owner || "";
+  elements.publishRepo.value = saved.repo || guessed.repo || "";
+  elements.publishBranch.value = saved.branch || guessed.branch || DEFAULT_BRANCH;
+  elements.publishCommitMessage.value =
+    saved.commitMessage || guessed.commitMessage || DEFAULT_COMMIT_MESSAGE;
+  elements.publishToken.value = getStoredPublishToken();
+
+  updatePublishPreviewLink();
+}
+
+function setPublishBusy(isBusy) {
+  [
+    elements.publishInvitationButton,
+    elements.reloadPublishedButton,
+    elements.saveInvitationButton,
+    elements.resetInvitationButton,
+    elements.exportInvitationButton,
+    elements.importInvitationButton,
+  ].forEach((button) => {
+    button.disabled = isBusy;
+  });
+}
+
+function encodeRepoPath(path) {
+  return path
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
+function encodeTextAsBase64(text) {
+  const bytes = new TextEncoder().encode(text);
+  const chunkSize = 0x8000;
+  let binary = "";
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return window.btoa(binary);
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => {
+      reject(new Error("이미지 파일을 읽지 못했습니다."));
+    };
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      const commaIndex = result.indexOf(",");
+      resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function parseGitHubError(response) {
+  try {
+    const payload = await response.json();
+    if (payload && payload.message) {
+      return `${payload.message} (${response.status})`;
+    }
+  } catch (error) {
+    return `GitHub API 요청에 실패했습니다. (${response.status})`;
+  }
+
+  return `GitHub API 요청에 실패했습니다. (${response.status})`;
+}
+
+function buildGitHubHeaders(token) {
+  return {
+    Accept: "application/vnd.github+json",
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    "X-GitHub-Api-Version": GITHUB_API_VERSION,
+  };
+}
+
+async function getGitHubContentMeta(settings, path) {
+  const apiUrl =
+    `https://api.github.com/repos/${encodeURIComponent(settings.owner)}` +
+    `/${encodeURIComponent(settings.repo)}/contents/${encodeRepoPath(path)}` +
+    `?ref=${encodeURIComponent(settings.branch)}`;
+
+  const response = await window.fetch(apiUrl, {
+    headers: buildGitHubHeaders(settings.token),
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(await parseGitHubError(response));
+  }
+
+  return response.json();
+}
+
+async function upsertGitHubFile(settings, options) {
+  const existing = await getGitHubContentMeta(settings, options.path);
+  const apiUrl =
+    `https://api.github.com/repos/${encodeURIComponent(settings.owner)}` +
+    `/${encodeURIComponent(settings.repo)}/contents/${encodeRepoPath(options.path)}`;
+
+  const body = {
+    message: options.message,
+    content: options.content,
+    branch: settings.branch,
+  };
+
+  if (existing && existing.sha) {
+    body.sha = existing.sha;
+  }
+
+  const response = await window.fetch(apiUrl, {
+    method: "PUT",
+    headers: buildGitHubHeaders(settings.token),
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseGitHubError(response));
+  }
+
+  return response.json();
+}
+
+function getFileExtension(file) {
+  const name = String(file.name || "");
+  const matched = name.match(/\.([a-zA-Z0-9]+)$/u);
+  if (matched) {
+    return matched[1].toLowerCase();
+  }
+
+  switch (file.type) {
+    case "image/png":
+      return "png";
+    case "image/webp":
+      return "webp";
+    case "image/gif":
+      return "gif";
+    case "image/heic":
+      return "heic";
+    case "image/heif":
+      return "heif";
+    default:
+      return "jpg";
+  }
+}
+
+function buildGalleryUploadPath(index, file) {
+  const slot = String(index + 1).padStart(2, "0");
+  return `uploads/gallery-${slot}.${getFileExtension(file)}`;
+}
+
+async function uploadPendingGalleryImages(settings, versionStamp) {
+  const uploadedSlots = [];
+
+  for (let index = 0; index < pendingGalleryFiles.length; index += 1) {
+    const pending = getPendingGalleryFile(index);
+    if (!pending || !pending.file) {
+      continue;
+    }
+
+    const path = buildGalleryUploadPath(index, pending.file);
+    const base64 = await readFileAsBase64(pending.file);
+    await upsertGitHubFile(settings, {
+      path,
+      content: base64,
+      message: `${settings.commitMessage} - 갤러리 ${index + 1}`,
+    });
+
+    invitation.gallery[index].image = `${path}?v=${versionStamp}`;
+    if (!trimText(invitation.gallery[index].alt)) {
+      invitation.gallery[index].alt = `${trimText(invitation.gallery[index].title) || `갤러리 ${index + 1}`} 이미지`;
+    }
+    uploadedSlots.push(index + 1);
+  }
+
+  return uploadedSlots;
 }
 
 function renderBasicFields() {
@@ -482,6 +964,27 @@ function renderTextCardList(container, list, options) {
   container.appendChild(actions);
 }
 
+function handleGalleryFileSelection(index, event) {
+  const [file] = event.target.files || [];
+  if (!file) {
+    return;
+  }
+
+  clearPendingGalleryFile(index);
+  pendingGalleryFiles[index] = {
+    file,
+    previewUrl: URL.createObjectURL(file),
+  };
+
+  if (!trimText(invitation.gallery[index].alt)) {
+    invitation.gallery[index].alt = `${trimText(invitation.gallery[index].title) || `갤러리 ${index + 1}`} 이미지`;
+  }
+
+  renderGalleryEditor();
+  updateStatus("갤러리 새 이미지를 선택했습니다. 공개 페이지에 반영하려면 발행해 주세요.");
+  showToast("갤러리 이미지를 선택했습니다");
+}
+
 function renderGalleryEditor() {
   clearNode(elements.galleryEditor);
 
@@ -490,9 +993,16 @@ function renderGalleryEditor() {
 
   invitation.gallery.forEach((item, index) => {
     const article = createItemCard(`갤러리 카드 ${index + 1}`, () => {
+      clearPendingGalleryFile(index);
       invitation.gallery.splice(index, 1);
+      pendingGalleryFiles.splice(index, 1);
       renderGalleryEditor();
     });
+
+    const preview = document.createElement("div");
+    preview.className = "editor-gallery-preview";
+    preview.appendChild(createGalleryPreviewCard(item, index));
+    article.appendChild(preview);
 
     appendFields(article, [
       createInputField({
@@ -510,7 +1020,28 @@ function renderGalleryEditor() {
           item.caption = value;
         },
       }),
+      createInputField({
+        label: "이미지 대체 텍스트",
+        value: item.alt,
+        placeholder: "예: 웨딩 스냅 사진",
+        onChange(value) {
+          item.alt = value;
+        },
+      }),
     ]);
+
+    const imageField = createFieldShell("사진 파일 선택");
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.addEventListener("change", (event) => {
+      handleGalleryFileSelection(index, event);
+    });
+    imageField.appendChild(fileInput);
+    imageField.appendChild(
+      createHelpText("선택한 새 파일은 이 탭에서 미리보기만 유지됩니다. 실제 업로드와 공유 반영은 발행 버튼을 눌렀을 때 진행됩니다."),
+    );
+    article.appendChild(imageField);
 
     const colors = document.createElement("div");
     colors.className = "editor-color-grid";
@@ -530,8 +1061,49 @@ function renderGalleryEditor() {
         },
       }),
     ]);
-
     article.appendChild(colors);
+
+    const imageMeta = document.createElement("div");
+    imageMeta.className = "editor-image-meta";
+
+    const pending = getPendingGalleryFile(index);
+    if (pending && pending.file) {
+      imageMeta.appendChild(
+        createHelpText(`새로 선택한 파일: ${pending.file.name} · 아직 공개 페이지에는 반영되지 않았습니다.`),
+      );
+    } else if (item.image) {
+      imageMeta.appendChild(createHelpText("현재 공개 이미지가 연결되어 있습니다."));
+    } else {
+      imageMeta.appendChild(createHelpText("현재 연결된 이미지가 없습니다. 이미지가 없으면 배경 카드형 비주얼이 표시됩니다."));
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "editor-action-row";
+
+    if (pending && pending.file) {
+      actions.appendChild(
+        createMiniButton("새 파일 선택 취소", () => {
+          clearPendingGalleryFile(index);
+          renderGalleryEditor();
+        }),
+      );
+    }
+
+    if (pending || item.image) {
+      actions.appendChild(
+        createMiniButton("이미지 비우기", () => {
+          clearPendingGalleryFile(index);
+          item.image = "";
+          renderGalleryEditor();
+        }),
+      );
+    }
+
+    if (actions.childElementCount > 0) {
+      imageMeta.appendChild(actions);
+    }
+
+    article.appendChild(imageMeta);
     wrapper.appendChild(article);
   });
 
@@ -545,7 +1117,10 @@ function renderGalleryEditor() {
         title: "",
         caption: "",
         tones: ["#d9b7a5", "#b46e5a"],
+        image: "",
+        alt: "",
       });
+      pendingGalleryFiles.push(null);
       renderGalleryEditor();
     }),
   );
@@ -641,10 +1216,13 @@ function renderAccountsEditor() {
       title.className = "editor-entry-title";
       title.textContent = `계좌 ${entryIndex + 1}`;
 
-      head.append(title, createMiniButton("삭제", () => {
-        group.entries.splice(entryIndex, 1);
-        renderAccountsEditor();
-      }));
+      head.append(
+        title,
+        createMiniButton("삭제", () => {
+          group.entries.splice(entryIndex, 1);
+          renderAccountsEditor();
+        }),
+      );
 
       const fields = document.createElement("div");
       fields.className = "editor-entry-grid";
@@ -750,7 +1328,12 @@ function saveInvitation() {
     return;
   }
 
-  updateStatus("편집 내용을 저장했습니다. 초대장 페이지를 새로고침하면 반영됩니다.");
+  const pendingCount = countPendingGalleryFiles();
+  if (pendingCount > 0) {
+    updateStatus(`편집 내용을 저장했습니다. 새 이미지 ${pendingCount}개는 이 탭에만 남아 있으며, 공개 반영은 발행 버튼을 눌러야 합니다.`);
+  } else {
+    updateStatus("편집 내용을 저장했습니다. 초대장 페이지를 새로고침하면 이 기기 초안이 반영됩니다.");
+  }
   showToast("편집 내용을 저장했습니다");
 }
 
@@ -761,14 +1344,16 @@ function resetInvitation() {
   }
 
   store.clearInvitation();
+  clearAllPendingGalleryFiles();
   invitation = store.createDefaultInvitation();
   renderAll();
   updateStatus("기본 예시값으로 복원했습니다.");
+  updatePublishStatus("공개 발행 전 상태입니다.");
   showToast("기본값으로 복원했습니다");
 }
 
 function downloadJsonFile() {
-  const json = store.exportInvitation(invitation);
+  const json = exportInvitationJson();
   const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -792,6 +1377,7 @@ function importJsonFile(event) {
   reader.onload = () => {
     try {
       const result = store.importInvitation(String(reader.result || ""));
+      clearAllPendingGalleryFiles();
       invitation = store.cloneInvitation(result.invitation);
       renderAll();
       updateStatus("JSON 파일을 불러와 저장했습니다.");
@@ -807,6 +1393,100 @@ function importJsonFile(event) {
   reader.readAsText(file, "utf-8");
 }
 
+async function publishInvitation() {
+  const settings = persistPublishSettings();
+  if (!settings.token) {
+    updatePublishStatus("GitHub 토큰을 입력해 주세요.");
+    showToast("GitHub 토큰이 필요합니다");
+    return;
+  }
+
+  if (!settings.owner || !settings.repo) {
+    updatePublishStatus("저장소 소유자와 이름을 입력해 주세요.");
+    showToast("저장소 정보를 입력해 주세요");
+    return;
+  }
+
+  const saved = store.saveInvitation(invitation);
+  invitation = store.cloneInvitation(saved.invitation);
+  renderAll();
+
+  setPublishBusy(true);
+  updatePublishStatus("저장소에 이미지와 content.json을 반영하는 중입니다.");
+
+  try {
+    const versionStamp = Date.now();
+    const uploadedSlots = await uploadPendingGalleryImages(settings, versionStamp);
+    const publishPayload = createSerializableInvitation(invitation);
+
+    await upsertGitHubFile(settings, {
+      path: store.PUBLISHED_CONTENT_PATH,
+      content: encodeTextAsBase64(`${JSON.stringify(publishPayload, null, 2)}\n`),
+      message: settings.commitMessage,
+    });
+
+    store.clearPublishedCache();
+    clearAllPendingGalleryFiles();
+
+    const localSave = store.saveInvitation(publishPayload);
+    invitation = store.cloneInvitation(localSave.invitation);
+    renderAll();
+
+    const previewUrl = buildPagesUrl(settings.owner, settings.repo);
+    updateStatus("초안과 공개본을 함께 갱신했습니다.");
+    if (uploadedSlots.length > 0) {
+      updatePublishStatus(
+        `갤러리 이미지 ${uploadedSlots.length}개와 초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.`,
+      );
+    } else {
+      updatePublishStatus("초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.");
+    }
+
+    if (previewUrl) {
+      elements.publishPreviewLink.href = previewUrl;
+      elements.publishPreviewLink.textContent = previewUrl;
+    }
+
+    showToast("공유 페이지 발행을 시작했습니다");
+  } catch (error) {
+    updatePublishStatus(`발행에 실패했습니다. ${error.message}`);
+    showToast("공개 발행에 실패했습니다");
+  } finally {
+    setPublishBusy(false);
+  }
+}
+
+async function reloadPublishedInvitation() {
+  const confirmed = window.confirm("현재 편집 중인 내용을 덮어쓰고 공개된 초대장 내용을 다시 불러올까요?");
+  if (!confirmed) {
+    return;
+  }
+
+  setPublishBusy(true);
+  updatePublishStatus("현재 공개본을 다시 불러오는 중입니다.");
+
+  try {
+    store.clearPublishedCache();
+    const published = await store.fetchPublishedInvitation({ force: true });
+    if (!published) {
+      throw new Error("현재 공개된 content.json을 찾지 못했습니다.");
+    }
+
+    clearAllPendingGalleryFiles();
+    invitation = store.cloneInvitation(published);
+    store.saveInvitation(invitation);
+    renderAll();
+    updateStatus("현재 공개본 기준으로 편집 초안을 다시 맞췄습니다.");
+    updatePublishStatus("현재 공개본을 다시 불러왔습니다.");
+    showToast("공개본을 불러왔습니다");
+  } catch (error) {
+    updatePublishStatus(`공개본을 불러오지 못했습니다. ${error.message}`);
+    showToast("공개본을 불러오지 못했습니다");
+  } finally {
+    setPublishBusy(false);
+  }
+}
+
 function bindEvents() {
   elements.saveInvitationButton.addEventListener("click", saveInvitation);
   elements.resetInvitationButton.addEventListener("click", resetInvitation);
@@ -815,25 +1495,52 @@ function bindEvents() {
     elements.importFileInput.click();
   });
   elements.importFileInput.addEventListener("change", importJsonFile);
+  elements.publishInvitationButton.addEventListener("click", publishInvitation);
+  elements.reloadPublishedButton.addEventListener("click", reloadPublishedInvitation);
+
+  [
+    elements.publishOwner,
+    elements.publishRepo,
+    elements.publishBranch,
+    elements.publishCommitMessage,
+  ].forEach((input) => {
+    input.addEventListener("input", () => {
+      persistPublishSettings();
+    });
+  });
+
+  elements.publishToken.addEventListener("input", () => {
+    storePublishToken(trimText(elements.publishToken.value));
+  });
 
   window.addEventListener("storage", (event) => {
     if (event.key === store.CONTENT_STORAGE_KEY) {
-      invitation = store.cloneInvitation();
+      invitation = store.getInvitation();
       renderAll();
       updateStatus("다른 탭에서 저장된 편집값을 다시 불러왔습니다.");
+      return;
+    }
+
+    if (event.key === store.PUBLISH_SETTINGS_STORAGE_KEY) {
+      hydratePublishSettings();
+      updatePublishStatus("다른 탭에서 발행 설정이 업데이트되었습니다.");
     }
   });
 }
 
-function init() {
+async function init() {
+  const hasLocalDraft = store.hasSavedInvitation();
+  invitation = await store.loadInvitation();
   renderAll();
+  hydratePublishSettings();
   bindEvents();
 
-  if (store.hasSavedInvitation()) {
-    updateStatus("저장된 편집값을 불러왔습니다.");
+  if (hasLocalDraft) {
+    updateStatus("이 기기에 저장된 편집 초안을 불러왔습니다.");
   } else {
-    updateStatus("기본 예시값을 불러왔습니다.");
+    updateStatus("현재 공개본 또는 기본 예시값을 불러왔습니다.");
   }
+  updatePublishStatus("저장소 정보를 확인한 뒤 공개 발행을 진행할 수 있습니다.");
 }
 
 init();
