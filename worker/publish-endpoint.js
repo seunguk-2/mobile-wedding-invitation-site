@@ -1,5 +1,6 @@
 const PUBLISHED_CONTENT_PATH = "content.json";
 const DEFAULT_COMMIT_MESSAGE = "모바일 청첩장 내용 업데이트";
+const RSVP_PREFIX = "rsvp:";
 
 export default {
   async fetch(request, env) {
@@ -9,6 +10,13 @@ export default {
 
 function readBinding(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function clone(value) {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value));
 }
 
 function getAllowedOrigin(request, env) {
@@ -26,7 +34,7 @@ function buildCorsHeaders(request, env) {
   const origin = getAllowedOrigin(request, env);
   const headers = {
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
     Vary: "Origin",
   };
 
@@ -61,7 +69,7 @@ function getPublicSiteBaseUrl(env) {
   return readBinding(env.PUBLIC_SITE_BASE_URL).replace(/\/+$/u, "");
 }
 
-function getRequiredConfig(env) {
+function getPublishConfig(env) {
   return {
     githubOwner: readBinding(env.GITHUB_OWNER),
     githubRepo: readBinding(env.GITHUB_REPO),
@@ -72,7 +80,14 @@ function getRequiredConfig(env) {
   };
 }
 
-function assertConfig(config) {
+function getRsvpConfig(env) {
+  return {
+    namespace: env.RSVP_KV,
+    adminPassword: readBinding(env.RSVP_ADMIN_PASSWORD) || readBinding(env.PUBLISH_PASSWORD),
+  };
+}
+
+function assertPublishConfig(config) {
   const missing = [];
 
   if (!config.githubOwner) {
@@ -99,28 +114,35 @@ function assertConfig(config) {
   }
 }
 
+function assertRsvpConfig(config) {
+  const missing = [];
+  if (!config.namespace) {
+    missing.push("RSVP_KV");
+  }
+  if (!config.adminPassword) {
+    missing.push("PUBLISH_PASSWORD 또는 RSVP_ADMIN_PASSWORD");
+  }
+
+  if (missing.length > 0) {
+    throw new Error(`RSVP 설정이 누락되었습니다: ${missing.join(", ")}`);
+  }
+}
+
 function getBearerToken(request) {
   const authorization = request.headers.get("Authorization") || "";
   const matched = authorization.match(/^Bearer\s+(.+)$/iu);
   return matched ? matched[1].trim() : "";
 }
 
-function authorizeRequest(request, config) {
+function authorizeRequest(request, password) {
   const providedPassword = getBearerToken(request);
-  return Boolean(providedPassword) && providedPassword === config.publishPassword;
+  return Boolean(providedPassword) && providedPassword === password;
 }
 
 function parseJsonBody(request) {
   return request.json().catch(() => {
     throw new Error("JSON 본문을 읽지 못했습니다.");
   });
-}
-
-function clone(value) {
-  if (typeof structuredClone === "function") {
-    return structuredClone(value);
-  }
-  return JSON.parse(JSON.stringify(value));
 }
 
 function sanitizeCommitMessage(value) {
@@ -150,9 +172,20 @@ function getFileExtension(fileName, mimeType) {
   }
 }
 
-function buildUploadPath(slot, fileName, mimeType) {
-  const paddedSlot = String(slot).padStart(2, "0");
-  return `uploads/gallery-${paddedSlot}.${getFileExtension(fileName, mimeType)}`;
+function buildUploadPath(image) {
+  const extension = getFileExtension(image.fileName, image.mimeType);
+  switch (readBinding(image.kind)) {
+    case "hero":
+      return `uploads/hero.${extension}`;
+    case "directions":
+      return `uploads/directions.${extension}`;
+    case "gallery": {
+      const paddedSlot = String(image.slot).padStart(2, "0");
+      return `uploads/gallery-${paddedSlot}.${extension}`;
+    }
+    default:
+      throw new Error("지원하지 않는 이미지 업로드 종류입니다.");
+  }
 }
 
 function buildPublicAssetUrl(config, path, versionStamp) {
@@ -317,45 +350,288 @@ function validatePublishPayload(payload) {
 
 async function publishContent(config, payload) {
   const versionStamp = Date.now();
-  const uploadedSlots = [];
+  const uploadedAssets = [];
 
   for (const image of payload.images) {
-    const slot = Number(image && image.slot);
-    const galleryIndex = Math.trunc(slot) - 1;
-
-    if (!Number.isInteger(slot) || galleryIndex < 0 || galleryIndex >= payload.content.gallery.length) {
-      throw new Error("업로드 이미지의 갤러리 순번이 올바르지 않습니다.");
-    }
-
+    const kind = readBinding(image && image.kind);
     if (!readBinding(image && image.contentBase64)) {
-      throw new Error(`갤러리 ${slot}번 이미지 데이터가 비어 있습니다.`);
+      throw new Error("업로드 이미지 데이터가 비어 있습니다.");
     }
 
-    const path = buildUploadPath(slot, image.fileName, image.mimeType);
-    await upsertGitHubFile(
-      config,
-      path,
-      readBinding(image.contentBase64),
-      `${payload.commitMessage} - 갤러리 ${slot}`,
-    );
+    if (kind === "gallery") {
+      const slot = Number(image && image.slot);
+      const galleryIndex = Math.trunc(slot) - 1;
 
-    payload.content.gallery[galleryIndex].image = buildPublicAssetUrl(config, path, versionStamp);
-    if (!readBinding(payload.content.gallery[galleryIndex].alt)) {
-      payload.content.gallery[galleryIndex].alt = `${readBinding(payload.content.gallery[galleryIndex].title) || `갤러리 ${slot}`} 이미지`;
+      if (!Number.isInteger(slot) || galleryIndex < 0 || galleryIndex >= payload.content.gallery.length) {
+        throw new Error("업로드 이미지의 갤러리 순번이 올바르지 않습니다.");
+      }
+
+      const path = buildUploadPath(image);
+      await upsertGitHubFile(
+        config,
+        path,
+        readBinding(image.contentBase64),
+        `${payload.commitMessage} - 갤러리 ${slot}`,
+      );
+
+      payload.content.gallery[galleryIndex].image = buildPublicAssetUrl(config, path, versionStamp);
+      if (!readBinding(payload.content.gallery[galleryIndex].alt)) {
+        payload.content.gallery[galleryIndex].alt =
+          `${readBinding(payload.content.gallery[galleryIndex].title) || `갤러리 ${slot}`} 이미지`;
+      }
+      uploadedAssets.push(`gallery:${slot}`);
+      continue;
     }
-    uploadedSlots.push(slot);
+
+    if (kind === "hero") {
+      const path = buildUploadPath(image);
+      await upsertGitHubFile(
+        config,
+        path,
+        readBinding(image.contentBase64),
+        `${payload.commitMessage} - 대표 이미지`,
+      );
+      payload.content.ui.heroImage = buildPublicAssetUrl(config, path, versionStamp);
+      if (!readBinding(payload.content.ui.heroImageAlt)) {
+        payload.content.ui.heroImageAlt = "대표 이미지";
+      }
+      uploadedAssets.push("hero");
+      continue;
+    }
+
+    if (kind === "directions") {
+      const path = buildUploadPath(image);
+      await upsertGitHubFile(
+        config,
+        path,
+        readBinding(image.contentBase64),
+        `${payload.commitMessage} - 약도 이미지`,
+      );
+      payload.content.venue.directionsImage = buildPublicAssetUrl(config, path, versionStamp);
+      if (!readBinding(payload.content.venue.directionsImageAlt)) {
+        payload.content.venue.directionsImageAlt = "오시는 길 안내 이미지";
+      }
+      uploadedAssets.push("directions");
+      continue;
+    }
+
+    throw new Error("지원하지 않는 업로드 이미지 종류입니다.");
   }
 
   const contentText = `${JSON.stringify(payload.content, null, 2)}\n`;
   const contentBase64 = encodeTextAsBase64(contentText);
-
   await upsertGitHubFile(config, PUBLISHED_CONTENT_PATH, contentBase64, payload.commitMessage);
 
   return {
     content: payload.content,
-    uploadedSlots,
+    uploadedAssets,
     publicSiteUrl: `${config.publicSiteBaseUrl}/`,
   };
+}
+
+function normalizeAttendance(value) {
+  return readBinding(value) === "불참" ? "불참" : "참석";
+}
+
+function normalizeCompanions(value) {
+  const parsed = Math.max(0, Math.min(20, Math.trunc(Number(value) || 0)));
+  return String(parsed);
+}
+
+function normalizeText(value, maxLength) {
+  return readBinding(value).slice(0, maxLength);
+}
+
+function validateRsvpSubmission(payload, request) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("RSVP 요청 본문이 비어 있습니다.");
+  }
+
+  const guestName = normalizeText(payload.guestName, 80);
+  if (!guestName) {
+    throw new Error("성함을 입력해 주세요.");
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    guestName,
+    attendance: normalizeAttendance(payload.attendance),
+    companions: normalizeCompanions(payload.companions),
+    meal: normalizeText(payload.meal || "식사 예정", 40) || "식사 예정",
+    message: normalizeText(payload.message, 1000),
+    sourceUrl: normalizeText(payload.sourceUrl, 400),
+    adminStatus: "미확인",
+    adminMemo: "",
+    submittedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    userAgent: normalizeText(request.headers.get("User-Agent"), 300),
+  };
+}
+
+function validateRsvpPatch(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("수정할 RSVP 데이터가 없습니다.");
+  }
+
+  return {
+    adminStatus: ["미확인", "확인 완료", "연락 필요"].includes(readBinding(payload.adminStatus))
+      ? readBinding(payload.adminStatus)
+      : "미확인",
+    adminMemo: normalizeText(payload.adminMemo, 1000),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildRsvpKey(id) {
+  return `${RSVP_PREFIX}${id}`;
+}
+
+async function getRsvpSubmission(namespace, id) {
+  const raw = await namespace.get(buildRsvpKey(id));
+  if (!raw) {
+    return null;
+  }
+  return JSON.parse(raw);
+}
+
+async function putRsvpSubmission(namespace, submission) {
+  await namespace.put(buildRsvpKey(submission.id), JSON.stringify(submission));
+}
+
+async function listRsvpSubmissions(namespace) {
+  const submissions = [];
+  let cursor = undefined;
+
+  do {
+    const listed = await namespace.list({ prefix: RSVP_PREFIX, cursor });
+    for (const key of listed.keys) {
+      const raw = await namespace.get(key.name);
+      if (!raw) {
+        continue;
+      }
+
+      try {
+        submissions.push(JSON.parse(raw));
+      } catch (error) {
+        continue;
+      }
+    }
+    cursor = listed.list_complete ? undefined : listed.cursor;
+  } while (cursor);
+
+  submissions.sort((left, right) => {
+    return String(right.submittedAt || "").localeCompare(String(left.submittedAt || ""));
+  });
+  return submissions;
+}
+
+async function handlePublishRequest(request, env) {
+  if (!ensureAllowedOrigin(request, env)) {
+    return buildJsonResponse(request, env, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
+  }
+
+  const config = getPublishConfig(env);
+  assertPublishConfig(config);
+
+  if (!authorizeRequest(request, config.publishPassword)) {
+    return buildJsonResponse(request, env, { ok: false, error: "발행 비밀번호가 올바르지 않습니다." }, 401);
+  }
+
+  const payload = validatePublishPayload(await parseJsonBody(request));
+  const result = await publishContent(config, payload);
+
+  return buildJsonResponse(
+    request,
+    env,
+    {
+      ok: true,
+      content: result.content,
+      uploadedAssets: result.uploadedAssets,
+      publicSiteUrl: result.publicSiteUrl,
+    },
+    200,
+  );
+}
+
+async function handleRsvpSubmit(request, env) {
+  if (!ensureAllowedOrigin(request, env)) {
+    return buildJsonResponse(request, env, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
+  }
+
+  const config = getRsvpConfig(env);
+  assertRsvpConfig(config);
+
+  const submission = validateRsvpSubmission(await parseJsonBody(request), request);
+  await putRsvpSubmission(config.namespace, submission);
+
+  return buildJsonResponse(
+    request,
+    env,
+    {
+      ok: true,
+      submission,
+    },
+    201,
+  );
+}
+
+async function handleRsvpList(request, env) {
+  if (!ensureAllowedOrigin(request, env)) {
+    return buildJsonResponse(request, env, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
+  }
+
+  const config = getRsvpConfig(env);
+  assertRsvpConfig(config);
+
+  if (!authorizeRequest(request, config.adminPassword)) {
+    return buildJsonResponse(request, env, { ok: false, error: "관리 비밀번호가 올바르지 않습니다." }, 401);
+  }
+
+  const responses = await listRsvpSubmissions(config.namespace);
+  return buildJsonResponse(request, env, { ok: true, responses }, 200);
+}
+
+async function handleRsvpUpdate(request, env, id) {
+  if (!ensureAllowedOrigin(request, env)) {
+    return buildJsonResponse(request, env, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
+  }
+
+  const config = getRsvpConfig(env);
+  assertRsvpConfig(config);
+
+  if (!authorizeRequest(request, config.adminPassword)) {
+    return buildJsonResponse(request, env, { ok: false, error: "관리 비밀번호가 올바르지 않습니다." }, 401);
+  }
+
+  const existing = await getRsvpSubmission(config.namespace, id);
+  if (!existing) {
+    return buildJsonResponse(request, env, { ok: false, error: "해당 RSVP 응답을 찾지 못했습니다." }, 404);
+  }
+
+  const patch = validateRsvpPatch(await parseJsonBody(request));
+  const next = {
+    ...existing,
+    ...patch,
+  };
+  await putRsvpSubmission(config.namespace, next);
+
+  return buildJsonResponse(request, env, { ok: true, response: next }, 200);
+}
+
+async function handleRsvpDelete(request, env, id) {
+  if (!ensureAllowedOrigin(request, env)) {
+    return buildJsonResponse(request, env, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
+  }
+
+  const config = getRsvpConfig(env);
+  assertRsvpConfig(config);
+
+  if (!authorizeRequest(request, config.adminPassword)) {
+    return buildJsonResponse(request, env, { ok: false, error: "관리 비밀번호가 올바르지 않습니다." }, 401);
+  }
+
+  await config.namespace.delete(buildRsvpKey(id));
+  return buildJsonResponse(request, env, { ok: true }, 200);
 }
 
 async function handleRequest(request, env) {
@@ -376,48 +652,42 @@ async function handleRequest(request, env) {
         ok: true,
         service: "wedding-invitation-publisher",
         publicSiteUrl: `${getPublicSiteBaseUrl(env)}/`,
+        rsvpEndpointUrl: `${url.origin}/rsvp`,
       },
       200,
     );
-  }
-
-  if (request.method !== "POST" || (url.pathname !== "/" && url.pathname !== "/publish")) {
-    return buildJsonResponse(request, env, { ok: false, error: "지원하지 않는 경로입니다." }, 404);
-  }
-
-  if (!ensureAllowedOrigin(request, env)) {
-    return buildJsonResponse(request, env, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
   }
 
   try {
-    const config = getRequiredConfig(env);
-    assertConfig(config);
-
-    if (!authorizeRequest(request, config)) {
-      return buildJsonResponse(request, env, { ok: false, error: "발행 비밀번호가 올바르지 않습니다." }, 401);
+    if ((url.pathname === "/" || url.pathname === "/publish") && request.method === "POST") {
+      return await handlePublishRequest(request, env);
     }
 
-    const payload = validatePublishPayload(await parseJsonBody(request));
-    const result = await publishContent(config, payload);
+    if (url.pathname === "/rsvp" && request.method === "POST") {
+      return await handleRsvpSubmit(request, env);
+    }
 
-    return buildJsonResponse(
-      request,
-      env,
-      {
-        ok: true,
-        content: result.content,
-        uploadedSlots: result.uploadedSlots,
-        publicSiteUrl: result.publicSiteUrl,
-      },
-      200,
-    );
+    if (url.pathname === "/rsvp" && request.method === "GET") {
+      return await handleRsvpList(request, env);
+    }
+
+    const rsvpMatch = url.pathname.match(/^\/rsvp\/([^/]+)$/u);
+    if (rsvpMatch && request.method === "PATCH") {
+      return await handleRsvpUpdate(request, env, decodeURIComponent(rsvpMatch[1]));
+    }
+
+    if (rsvpMatch && request.method === "DELETE") {
+      return await handleRsvpDelete(request, env, decodeURIComponent(rsvpMatch[1]));
+    }
+
+    return buildJsonResponse(request, env, { ok: false, error: "지원하지 않는 경로입니다." }, 404);
   } catch (error) {
     return buildJsonResponse(
       request,
       env,
       {
         ok: false,
-        error: error && error.message ? error.message : "발행 중 알 수 없는 오류가 발생했습니다.",
+        error: error && error.message ? error.message : "처리 중 알 수 없는 오류가 발생했습니다.",
       },
       500,
     );

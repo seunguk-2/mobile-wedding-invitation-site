@@ -49,16 +49,9 @@
               </div>
             </div>
 
-            <figure class="hero-art" aria-hidden="true">
-              <div class="hero-arch">
-                <p class="hero-art-label" id="heroArtLabel"></p>
-                <div class="hero-ring hero-ring-a"></div>
-                <div class="hero-ring hero-ring-b"></div>
-                <div class="hero-petal hero-petal-a"></div>
-                <div class="hero-petal hero-petal-b"></div>
-                <div class="hero-monogram" id="heroMonogram"></div>
-              </div>
-              <figcaption id="heroArtCaption"></figcaption>
+            <figure class="hero-media" id="heroMedia">
+              <img class="hero-image" id="heroImage" alt="" />
+              <figcaption class="hero-image-caption" id="heroImageCaption"></figcaption>
             </figure>
           </div>
         </div>
@@ -84,9 +77,21 @@
               <p class="family-role">신랑측</p>
               <h3 class="family-name" id="groomFullName"></h3>
               <p class="family-parents" id="groomParents"></p>
-              <div class="contact-row">
-                <a class="line-button" id="groomPhoneLink" href="#">신랑에게 연락하기</a>
-                <a class="line-button" id="groomParentPhoneLink" href="#">혼주에게 연락하기</a>
+              <div class="contact-stack">
+                <div class="contact-item">
+                  <span class="contact-label">신랑</span>
+                  <div class="contact-row">
+                    <a class="icon-button" id="groomPhoneLink" href="#" aria-label="신랑에게 전화하기"></a>
+                    <a class="icon-button" id="groomSmsLink" href="#" aria-label="신랑에게 문자 보내기"></a>
+                  </div>
+                </div>
+                <div class="contact-item">
+                  <span class="contact-label">혼주</span>
+                  <div class="contact-row">
+                    <a class="icon-button" id="groomParentPhoneLink" href="#" aria-label="신랑측 혼주에게 전화하기"></a>
+                    <a class="icon-button" id="groomParentSmsLink" href="#" aria-label="신랑측 혼주에게 문자 보내기"></a>
+                  </div>
+                </div>
               </div>
             </article>
 
@@ -94,9 +99,21 @@
               <p class="family-role">신부측</p>
               <h3 class="family-name" id="brideFullName"></h3>
               <p class="family-parents" id="brideParents"></p>
-              <div class="contact-row">
-                <a class="line-button" id="bridePhoneLink" href="#">신부에게 연락하기</a>
-                <a class="line-button" id="brideParentPhoneLink" href="#">혼주에게 연락하기</a>
+              <div class="contact-stack">
+                <div class="contact-item">
+                  <span class="contact-label">신부</span>
+                  <div class="contact-row">
+                    <a class="icon-button" id="bridePhoneLink" href="#" aria-label="신부에게 전화하기"></a>
+                    <a class="icon-button" id="brideSmsLink" href="#" aria-label="신부에게 문자 보내기"></a>
+                  </div>
+                </div>
+                <div class="contact-item">
+                  <span class="contact-label">혼주</span>
+                  <div class="contact-row">
+                    <a class="icon-button" id="brideParentPhoneLink" href="#" aria-label="신부측 혼주에게 전화하기"></a>
+                    <a class="icon-button" id="brideParentSmsLink" href="#" aria-label="신부측 혼주에게 문자 보내기"></a>
+                  </div>
+                </div>
               </div>
             </article>
           </div>
@@ -169,7 +186,10 @@
           <p class="section-tag">갤러리</p>
           <h2 class="section-title">우리의 순간을 담았습니다</h2>
           <p class="section-note" id="galleryNote"></p>
-          <div class="gallery-grid" id="galleryGrid"></div>
+          <div class="gallery-carousel-shell">
+            <div class="gallery-track" id="galleryTrack" aria-label="웨딩 갤러리"></div>
+            <div class="gallery-dots" id="galleryDots" aria-label="갤러리 페이지 선택"></div>
+          </div>
         </section>
 
         <section class="section-card" id="story">
@@ -200,11 +220,17 @@
               <div class="route-buttons">
                 <a class="line-button" id="kakaoMapLink" href="#" rel="noreferrer noopener" target="_blank">카카오맵</a>
                 <a class="line-button" id="naverMapLink" href="#" rel="noreferrer noopener" target="_blank">네이버지도</a>
+                <a class="line-button" id="tmapLink" href="#" rel="noreferrer noopener">티맵</a>
                 <a class="line-button" id="googleMapLink" href="#" rel="noreferrer noopener" target="_blank">구글지도</a>
                 <button class="line-button" id="copyAddressButton" type="button">주소 복사</button>
               </div>
             </div>
           </article>
+
+          <figure class="directions-figure" id="directionsFigure" hidden>
+            <img class="directions-image" id="directionsImage" alt="" />
+            <figcaption class="section-note">직접 업로드한 약도 이미지</figcaption>
+          </figure>
 
           <div class="notice-grid" id="transportList"></div>
         </section>
@@ -272,11 +298,11 @@
             </label>
 
             <div class="form-actions">
-              <button class="primary-button" type="submit">참석 의사 저장하기</button>
+              <button class="primary-button" type="submit">참석 의사 보내기</button>
               <button class="secondary-button" id="resetRsvpButton" type="button">입력 초기화</button>
             </div>
 
-            <p class="save-note" id="saveNote">아직 저장된 참석 의사가 없습니다.</p>
+            <p class="save-note" id="saveNote">아직 전달된 참석 의사가 없습니다.</p>
           </form>
         </section>
       </main>
@@ -291,6 +317,25 @@
       <a class="bottom-action" href="#location">오시는 길</a>
       <a class="bottom-action" href="#rsvp">참석 의사</a>
       <button class="bottom-action" id="bottomShareButton" type="button">공유하기</button>
+    </div>
+
+    <div class="gallery-viewer" id="galleryViewer" hidden>
+      <div class="gallery-viewer-backdrop" id="galleryViewerBackdrop"></div>
+      <div class="gallery-viewer-panel" role="dialog" aria-modal="true" aria-label="갤러리 전체 화면 보기">
+        <div class="gallery-viewer-head">
+          <p class="modal-index" id="galleryViewerIndex"></p>
+          <button class="modal-close" id="galleryViewerClose" type="button">닫기</button>
+        </div>
+        <div class="gallery-viewer-viewport" id="galleryViewerTrack"></div>
+        <div class="gallery-viewer-controls">
+          <button class="line-button" id="galleryViewerPrev" type="button">이전</button>
+          <button class="line-button" id="galleryViewerNext" type="button">다음</button>
+        </div>
+        <div class="gallery-viewer-copy">
+          <h3 class="modal-title" id="galleryViewerTitle"></h3>
+          <p class="modal-caption" id="galleryViewerCaption"></p>
+        </div>
+      </div>
     </div>
 
     <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>

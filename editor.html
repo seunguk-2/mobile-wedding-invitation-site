@@ -59,12 +59,14 @@
         <nav class="quick-nav" aria-label="편집 섹션 바로가기">
           <a href="#publish">발행</a>
           <a href="#basic">기본</a>
+          <a href="#media">비주얼</a>
           <a href="#family">양가 정보</a>
           <a href="#schedule">예식 정보</a>
           <a href="#guide">안내 문구</a>
           <a href="#gallery">갤러리</a>
           <a href="#story">우리의 여정</a>
           <a href="#accounts">계좌 안내</a>
+          <a href="#rsvp">RSVP</a>
         </nav>
       </header>
 
@@ -128,8 +130,9 @@
               <h3 class="editor-subtitle">발행 전 확인</h3>
               <div class="editor-checklist">
                 <p>새로 선택한 사진 파일은 `공유 페이지에 발행하기`를 눌러야 실제 사이트에 업로드됩니다.</p>
-                <p>갤러리 이미지는 확대 모달 없이 카드로만 노출됩니다.</p>
+                <p>갤러리 이미지는 캐러셀 카드와 전체 화면 스와이프 뷰어로 표시됩니다.</p>
                 <p>GitHub 토큰은 서버리스 엔드포인트 비밀값으로만 저장되고, 이 편집 페이지에는 저장되지 않습니다.</p>
+                <p>RSVP 응답 관리에는 같은 Worker 안의 KV 저장소가 필요합니다.</p>
                 <p>GitHub Pages 반영에는 보통 1~2분 정도 걸릴 수 있습니다.</p>
               </div>
               <p class="section-note editor-link-note">
@@ -155,6 +158,24 @@
             제목, 첫 화면 문구, 갤러리 안내, 하단 감사 문구처럼 페이지 전반에서 쓰이는 텍스트입니다.
           </p>
           <div class="editor-fields" id="basicFields"></div>
+        </section>
+
+        <section class="section-card" id="media">
+          <p class="section-tag">비주얼</p>
+          <h2 class="section-title">대표 이미지와 약도를 수정합니다</h2>
+          <p class="section-note">
+            첫 화면 대표 이미지와 오시는 길 약도 이미지는 여기서 선택하고, 공개 발행 시 실제 공유 페이지에 업로드됩니다.
+          </p>
+          <div class="editor-split">
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">첫 화면 대표 이미지</h3>
+              <div id="heroMediaEditor"></div>
+            </article>
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">오시는 길 약도 이미지</h3>
+              <div id="directionsMediaEditor"></div>
+            </article>
+          </div>
         </section>
 
         <section class="section-card" id="family">
@@ -237,6 +258,38 @@
             그룹 제목과 각 계좌의 역할, 예금주, 은행, 계좌번호를 직접 수정할 수 있습니다.
           </p>
           <div id="accountEditor"></div>
+        </section>
+
+        <section class="section-card" id="rsvp">
+          <p class="section-tag">참석 의사</p>
+          <h2 class="section-title">저장 위치를 연결하고 응답을 관리합니다</h2>
+          <p class="section-note">
+            공개 페이지의 RSVP는 Cloudflare Worker로 저장되고, 이 섹션에서 최신 응답을 불러와 확인하거나 정리할 수 있습니다.
+          </p>
+          <div class="editor-split">
+            <article class="editor-subpanel">
+              <h3 class="editor-subtitle">RSVP 연결 설정</h3>
+              <div class="editor-fields" id="rsvpSettingsFields"></div>
+            </article>
+            <article class="editor-subpanel">
+              <div class="editor-panel-head">
+                <div>
+                  <h3 class="editor-subtitle">응답 관리</h3>
+                  <p class="editor-panel-note">발행 비밀번호로 서버에 저장된 응답을 불러와 확인합니다.</p>
+                </div>
+              </div>
+              <div class="editor-action-row">
+                <button class="primary-button" id="loadRsvpResponsesButton" type="button">
+                  응답 불러오기
+                </button>
+                <button class="secondary-button" id="exportRsvpResponsesButton" type="button">
+                  CSV 내보내기
+                </button>
+              </div>
+              <p class="save-note editor-status" id="rsvpManagerStatus"></p>
+              <div id="rsvpManagerList"></div>
+            </article>
+          </div>
         </section>
       </main>
     </div>

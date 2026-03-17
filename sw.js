@@ -1,4 +1,4 @@
-const CACHE_NAME = "wedding-invitation-v4";
+const CACHE_NAME = "wedding-invitation-v5";
 const STATIC_ASSETS = [
   "./",
   "./index.html",

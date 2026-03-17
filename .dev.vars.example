@@ -5,3 +5,4 @@ PUBLIC_SITE_BASE_URL=https://seunguk-2.github.io/mobile-wedding-invitation-site
 ALLOWED_ORIGIN=https://seunguk-2.github.io
 GITHUB_TOKEN=github_fine_grained_token_here
 PUBLISH_PASSWORD=choose_a_strong_publish_password_here
+RSVP_ADMIN_PASSWORD=optional_separate_admin_password_here

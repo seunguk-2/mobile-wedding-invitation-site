@@ -7,10 +7,18 @@ const DEFAULT_PUBLIC_SITE_URL = "https://seunguk-2.github.io/mobile-wedding-invi
 
 let invitation = store.createDefaultInvitation();
 let toastTimer = 0;
-const pendingGalleryFiles = [];
+let rsvpResponses = [];
+
+const pendingFiles = {
+  hero: null,
+  directions: null,
+  gallery: [],
+};
 
 const elements = {
   basicFields: document.getElementById("basicFields"),
+  heroMediaEditor: document.getElementById("heroMediaEditor"),
+  directionsMediaEditor: document.getElementById("directionsMediaEditor"),
   groomFields: document.getElementById("groomFields"),
   brideFields: document.getElementById("brideFields"),
   ceremonyFields: document.getElementById("ceremonyFields"),
@@ -20,6 +28,11 @@ const elements = {
   galleryEditor: document.getElementById("galleryEditor"),
   timelineEditor: document.getElementById("timelineEditor"),
   accountEditor: document.getElementById("accountEditor"),
+  rsvpSettingsFields: document.getElementById("rsvpSettingsFields"),
+  rsvpManagerList: document.getElementById("rsvpManagerList"),
+  loadRsvpResponsesButton: document.getElementById("loadRsvpResponsesButton"),
+  exportRsvpResponsesButton: document.getElementById("exportRsvpResponsesButton"),
+  rsvpManagerStatus: document.getElementById("rsvpManagerStatus"),
   saveInvitationButton: document.getElementById("saveInvitationButton"),
   resetInvitationButton: document.getElementById("resetInvitationButton"),
   exportInvitationButton: document.getElementById("exportInvitationButton"),
@@ -42,6 +55,10 @@ function clearNode(node) {
   }
 }
 
+function trimText(value) {
+  return String(value || "").trim();
+}
+
 function showToast(message) {
   window.clearTimeout(toastTimer);
   elements.toast.textContent = message;
@@ -57,6 +74,10 @@ function updateStatus(message) {
 
 function updatePublishStatus(message) {
   elements.publishStatus.textContent = message;
+}
+
+function updateRsvpManagerStatus(message) {
+  elements.rsvpManagerStatus.textContent = message;
 }
 
 function createFieldShell(labelText) {
@@ -117,6 +138,9 @@ function createTextareaField(spec) {
   input.rows = spec.rows || 4;
   input.placeholder = spec.placeholder || "";
   input.value = spec.value == null ? "" : String(spec.value);
+  if (spec.readOnly) {
+    input.readOnly = true;
+  }
   input.addEventListener("input", (event) => {
     spec.onChange(event.target.value);
   });
@@ -209,37 +233,46 @@ function appendFields(container, fields) {
   });
 }
 
-function getPendingGalleryFile(index) {
-  return pendingGalleryFiles[index] || null;
-}
-
-function clearPendingGalleryFile(index) {
-  const pending = getPendingGalleryFile(index);
+function revokePendingFile(pending) {
   if (pending && pending.previewUrl) {
     URL.revokeObjectURL(pending.previewUrl);
   }
-  pendingGalleryFiles[index] = null;
 }
 
-function clearAllPendingGalleryFiles() {
-  pendingGalleryFiles.forEach((_, index) => {
-    clearPendingGalleryFile(index);
+function getPendingFile(kind, index) {
+  if (kind === "gallery") {
+    return pendingFiles.gallery[index] || null;
+  }
+  return pendingFiles[kind] || null;
+}
+
+function clearPendingFile(kind, index) {
+  if (kind === "gallery") {
+    const pending = getPendingFile(kind, index);
+    revokePendingFile(pending);
+    pendingFiles.gallery[index] = null;
+    return;
+  }
+
+  revokePendingFile(pendingFiles[kind]);
+  pendingFiles[kind] = null;
+}
+
+function clearAllPendingFiles() {
+  clearPendingFile("hero");
+  clearPendingFile("directions");
+  pendingFiles.gallery.forEach((_, index) => {
+    clearPendingFile("gallery", index);
   });
-  pendingGalleryFiles.length = 0;
+  pendingFiles.gallery.length = 0;
 }
 
-function countPendingGalleryFiles() {
-  return pendingGalleryFiles.reduce((count, item) => {
+function countPendingUploads() {
+  return ["hero", "directions"].reduce((count, kind) => {
+    return getPendingFile(kind) && getPendingFile(kind).file ? count + 1 : count;
+  }, 0) + pendingFiles.gallery.reduce((count, item) => {
     return item && item.file ? count + 1 : count;
   }, 0);
-}
-
-function getGalleryPreviewSource(item, index) {
-  const pending = getPendingGalleryFile(index);
-  if (pending && pending.previewUrl) {
-    return pending.previewUrl;
-  }
-  return item.image || "";
 }
 
 function createGalleryPreviewCard(item, index) {
@@ -248,12 +281,12 @@ function createGalleryPreviewCard(item, index) {
   article.style.setProperty("--tone-a", item.tones[0]);
   article.style.setProperty("--tone-b", item.tones[1]);
 
-  const imageSource = getGalleryPreviewSource(item, index);
-  if (imageSource) {
+  const previewSource = trimText((getPendingFile("gallery", index) || {}).previewUrl || item.image);
+  if (previewSource) {
     article.classList.add("has-image");
     const image = document.createElement("img");
     image.className = "gallery-image";
-    image.src = imageSource;
+    image.src = previewSource;
     image.alt = item.alt || item.title || `갤러리 ${index + 1} 이미지`;
     image.loading = "lazy";
     image.decoding = "async";
@@ -278,6 +311,32 @@ function createGalleryPreviewCard(item, index) {
   return article;
 }
 
+function createMediaPreviewCard(options) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "editor-media-preview";
+
+  const card = document.createElement("div");
+  card.className = `editor-media-card${options.wide ? " is-wide" : ""}`;
+
+  if (options.src) {
+    card.style.padding = "0";
+    const image = document.createElement("img");
+    image.className = "editor-media-image";
+    image.src = options.src;
+    image.alt = options.alt || options.emptyText;
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.draggable = false;
+    card.appendChild(image);
+  } else {
+    card.classList.add("is-empty");
+    card.textContent = options.emptyText;
+  }
+
+  wrapper.appendChild(card);
+  return wrapper;
+}
+
 function createSerializableInvitation(source) {
   const prepared = store.cloneInvitation(source);
   return {
@@ -285,8 +344,9 @@ function createSerializableInvitation(source) {
     invitationMessage: prepared.invitationMessage,
     ui: {
       heroMessage: prepared.ui.heroMessage,
-      heroArtLabel: prepared.ui.heroArtLabel,
-      heroArtCaption: prepared.ui.heroArtCaption,
+      heroImage: prepared.ui.heroImage,
+      heroImageAlt: prepared.ui.heroImageAlt,
+      heroImageCaption: prepared.ui.heroImageCaption,
       galleryNote: prepared.ui.galleryNote,
       accountNote: prepared.ui.accountNote,
       rsvpNote: prepared.ui.rsvpNote,
@@ -325,6 +385,11 @@ function createSerializableInvitation(source) {
       hall: prepared.venue.hall,
       address: prepared.venue.address,
       detail: prepared.venue.detail,
+      latitude: prepared.venue.latitude,
+      longitude: prepared.venue.longitude,
+      tmapLink: prepared.venue.tmapLink,
+      directionsImage: prepared.venue.directionsImage,
+      directionsImageAlt: prepared.venue.directionsImageAlt,
     },
     transport: prepared.transport.map((item) => ({
       title: item.title,
@@ -355,15 +420,15 @@ function createSerializableInvitation(source) {
         number: entry.number,
       })),
     })),
+    rsvp: {
+      endpointUrl: prepared.rsvp.endpointUrl,
+      adminLabel: prepared.rsvp.adminLabel,
+    },
   };
 }
 
 function exportInvitationJson() {
   return `${JSON.stringify(createSerializableInvitation(invitation), null, 2)}\n`;
-}
-
-function trimText(value) {
-  return String(value || "").trim();
 }
 
 function getStoredPublishPassword() {
@@ -399,6 +464,19 @@ function guessPublicSiteUrlFromLocation() {
   }
 
   return `${url.origin}/${segments[0]}/`;
+}
+
+function deriveRsvpEndpointFromPublish(endpointUrl) {
+  const trimmed = trimText(endpointUrl);
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/\/publish\/?$/u.test(trimmed)) {
+    return trimmed.replace(/\/publish\/?$/u, "/rsvp");
+  }
+
+  return `${trimmed.replace(/\/+$/u, "")}/rsvp`;
 }
 
 function getPublishSettingsFromForm() {
@@ -441,7 +519,7 @@ function hydratePublishSettings() {
   updatePublishPreviewLink();
 }
 
-function setPublishBusy(isBusy) {
+function setBusy(isBusy) {
   [
     elements.publishInvitationButton,
     elements.reloadPublishedButton,
@@ -449,6 +527,8 @@ function setPublishBusy(isBusy) {
     elements.resetInvitationButton,
     elements.exportInvitationButton,
     elements.importInvitationButton,
+    elements.loadRsvpResponsesButton,
+    elements.exportRsvpResponsesButton,
   ].forEach((button) => {
     button.disabled = isBusy;
   });
@@ -469,19 +549,42 @@ function readFileAsBase64(file) {
   });
 }
 
+function createUploadDescriptor(kind, file, extra) {
+  return {
+    kind,
+    fileName: file.name,
+    mimeType: file.type || "application/octet-stream",
+    ...extra,
+  };
+}
+
 async function buildPublishRequestPayload() {
   const images = [];
 
-  for (let index = 0; index < pendingGalleryFiles.length; index += 1) {
-    const pending = getPendingGalleryFile(index);
+  const heroPending = getPendingFile("hero");
+  if (heroPending && heroPending.file) {
+    images.push({
+      ...createUploadDescriptor("hero", heroPending.file),
+      contentBase64: await readFileAsBase64(heroPending.file),
+    });
+  }
+
+  const directionsPending = getPendingFile("directions");
+  if (directionsPending && directionsPending.file) {
+    images.push({
+      ...createUploadDescriptor("directions", directionsPending.file),
+      contentBase64: await readFileAsBase64(directionsPending.file),
+    });
+  }
+
+  for (let index = 0; index < pendingFiles.gallery.length; index += 1) {
+    const pending = getPendingFile("gallery", index);
     if (!pending || !pending.file) {
       continue;
     }
 
     images.push({
-      slot: index + 1,
-      fileName: pending.file.name,
-      mimeType: pending.file.type || "application/octet-stream",
+      ...createUploadDescriptor("gallery", pending.file, { slot: index + 1 }),
       contentBase64: await readFileAsBase64(pending.file),
     });
   }
@@ -550,17 +653,10 @@ function renderBasicFields() {
       },
     }),
     createInputField({
-      label: "상단 아치 문구",
-      value: invitation.ui.heroArtLabel,
+      label: "대표 이미지 캡션",
+      value: invitation.ui.heroImageCaption,
       onChange(value) {
-        invitation.ui.heroArtLabel = value;
-      },
-    }),
-    createInputField({
-      label: "상단 캡션 문구",
-      value: invitation.ui.heroArtCaption,
-      onChange(value) {
-        invitation.ui.heroArtCaption = value;
+        invitation.ui.heroImageCaption = value;
       },
     }),
     createTextareaField({
@@ -603,6 +699,126 @@ function renderBasicFields() {
       },
     }),
   ]);
+}
+
+function renderMediaEditor(kind, container, options) {
+  clearNode(container);
+
+  const previewSource = trimText(
+    (getPendingFile(kind) || {}).previewUrl ||
+      (kind === "hero" ? invitation.ui.heroImage : invitation.venue.directionsImage),
+  );
+  const previewAlt = kind === "hero" ? invitation.ui.heroImageAlt : invitation.venue.directionsImageAlt;
+  const wrapper = document.createElement("div");
+  wrapper.className = "editor-list";
+
+  const article = document.createElement("article");
+  article.className = "editor-item";
+
+  article.appendChild(
+    createMediaPreviewCard({
+      src: previewSource,
+      alt: previewAlt,
+      emptyText: options.emptyText,
+      wide: options.wide,
+    }),
+  );
+
+  appendFields(article, [
+    createInputField({
+      label: options.altLabel,
+      value: previewAlt,
+      onChange(value) {
+        if (kind === "hero") {
+          invitation.ui.heroImageAlt = value;
+          return;
+        }
+        invitation.venue.directionsImageAlt = value;
+      },
+    }),
+  ]);
+
+  const imageField = createFieldShell("사진 파일 선택");
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  fileInput.addEventListener("change", (event) => {
+    const [file] = event.target.files || [];
+    if (!file) {
+      return;
+    }
+
+    clearPendingFile(kind);
+    pendingFiles[kind] = {
+      file,
+      previewUrl: URL.createObjectURL(file),
+    };
+
+    if (kind === "hero" && !trimText(invitation.ui.heroImageAlt)) {
+      invitation.ui.heroImageAlt = "대표 이미지";
+    }
+
+    if (kind === "directions" && !trimText(invitation.venue.directionsImageAlt)) {
+      invitation.venue.directionsImageAlt = "오시는 길 안내 이미지";
+    }
+
+    renderMediaEditor(kind, container, options);
+    updateStatus(`${options.statusLabel}를 새로 선택했습니다. 공개 페이지에 반영하려면 발행해 주세요.`);
+    showToast(`${options.statusLabel}를 선택했습니다`);
+  });
+  imageField.appendChild(fileInput);
+  imageField.appendChild(
+    createHelpText("선택한 새 파일은 이 탭에서만 미리보기로 유지됩니다. 실제 업로드와 공유 반영은 발행 버튼을 눌렀을 때 진행됩니다."),
+  );
+  article.appendChild(imageField);
+
+  const meta = document.createElement("div");
+  meta.className = "editor-image-meta";
+
+  const pending = getPendingFile(kind);
+  if (pending && pending.file) {
+    meta.appendChild(
+      createHelpText(`새로 선택한 파일: ${pending.file.name} · 아직 공개 페이지에는 반영되지 않았습니다.`),
+    );
+  } else if (previewSource) {
+    meta.appendChild(createHelpText("현재 공개 이미지가 연결되어 있습니다."));
+  } else {
+    meta.appendChild(createHelpText("현재 연결된 이미지가 없습니다."));
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "editor-action-row";
+
+  if (pending && pending.file) {
+    actions.appendChild(
+      createMiniButton("새 파일 선택 취소", () => {
+        clearPendingFile(kind);
+        renderMediaEditor(kind, container, options);
+      }),
+    );
+  }
+
+  if (pending || previewSource) {
+    actions.appendChild(
+      createMiniButton("이미지 비우기", () => {
+        clearPendingFile(kind);
+        if (kind === "hero") {
+          invitation.ui.heroImage = "";
+        } else {
+          invitation.venue.directionsImage = "";
+        }
+        renderMediaEditor(kind, container, options);
+      }),
+    );
+  }
+
+  if (actions.childElementCount > 0) {
+    meta.appendChild(actions);
+  }
+
+  article.appendChild(meta);
+  wrapper.appendChild(article);
+  container.appendChild(wrapper);
 }
 
 function renderPersonFields(container, person) {
@@ -649,6 +865,7 @@ function renderPersonFields(container, person) {
       label: "본인 연락처",
       value: person.phone,
       type: "tel",
+      help: "공개 페이지에서는 번호 대신 전화/문자 아이콘만 노출됩니다.",
       onChange(value) {
         person.phone = value;
       },
@@ -657,6 +874,7 @@ function renderPersonFields(container, person) {
       label: "혼주 연락처",
       value: person.parentPhone,
       type: "tel",
+      help: "공개 페이지에서는 번호 대신 전화/문자 아이콘만 노출됩니다.",
       onChange(value) {
         person.parentPhone = value;
       },
@@ -777,6 +995,34 @@ function renderVenueFields() {
         invitation.venue.detail = value;
       },
     }),
+    createInputField({
+      label: "위도",
+      value: invitation.venue.latitude,
+      placeholder: "예: 37.5662952",
+      help: "티맵 딥링크를 자동으로 만들 때 사용합니다.",
+      onChange(value) {
+        invitation.venue.latitude = value;
+      },
+    }),
+    createInputField({
+      label: "경도",
+      value: invitation.venue.longitude,
+      placeholder: "예: 126.9779451",
+      help: "티맵 딥링크를 자동으로 만들 때 사용합니다.",
+      onChange(value) {
+        invitation.venue.longitude = value;
+      },
+    }),
+    createInputField({
+      label: "티맵 링크 직접 입력",
+      value: invitation.venue.tmapLink,
+      type: "url",
+      placeholder: "예: tmap://route?... 또는 공유 링크",
+      help: "입력하면 위도/경도보다 이 값을 우선 사용합니다.",
+      onChange(value) {
+        invitation.venue.tmapLink = value;
+      },
+    }),
   ]);
 }
 
@@ -839,8 +1085,8 @@ function handleGalleryFileSelection(index, event) {
     return;
   }
 
-  clearPendingGalleryFile(index);
-  pendingGalleryFiles[index] = {
+  clearPendingFile("gallery", index);
+  pendingFiles.gallery[index] = {
     file,
     previewUrl: URL.createObjectURL(file),
   };
@@ -862,9 +1108,9 @@ function renderGalleryEditor() {
 
   invitation.gallery.forEach((item, index) => {
     const article = createItemCard(`갤러리 카드 ${index + 1}`, () => {
-      clearPendingGalleryFile(index);
+      clearPendingFile("gallery", index);
       invitation.gallery.splice(index, 1);
-      pendingGalleryFiles.splice(index, 1);
+      pendingFiles.gallery.splice(index, 1);
       renderGalleryEditor();
     });
 
@@ -908,7 +1154,7 @@ function renderGalleryEditor() {
     });
     imageField.appendChild(fileInput);
     imageField.appendChild(
-      createHelpText("선택한 새 파일은 이 탭에서 미리보기만 유지됩니다. 실제 업로드와 공유 반영은 발행 버튼을 눌렀을 때 진행됩니다."),
+      createHelpText("이제 공개 페이지에서는 캐러셀과 전체 화면 스와이프 갤러리로 표시됩니다."),
     );
     article.appendChild(imageField);
 
@@ -935,7 +1181,7 @@ function renderGalleryEditor() {
     const imageMeta = document.createElement("div");
     imageMeta.className = "editor-image-meta";
 
-    const pending = getPendingGalleryFile(index);
+    const pending = getPendingFile("gallery", index);
     if (pending && pending.file) {
       imageMeta.appendChild(
         createHelpText(`새로 선택한 파일: ${pending.file.name} · 아직 공개 페이지에는 반영되지 않았습니다.`),
@@ -952,7 +1198,7 @@ function renderGalleryEditor() {
     if (pending && pending.file) {
       actions.appendChild(
         createMiniButton("새 파일 선택 취소", () => {
-          clearPendingGalleryFile(index);
+          clearPendingFile("gallery", index);
           renderGalleryEditor();
         }),
       );
@@ -961,7 +1207,7 @@ function renderGalleryEditor() {
     if (pending || item.image) {
       actions.appendChild(
         createMiniButton("이미지 비우기", () => {
-          clearPendingGalleryFile(index);
+          clearPendingFile("gallery", index);
           item.image = "";
           renderGalleryEditor();
         }),
@@ -989,7 +1235,7 @@ function renderGalleryEditor() {
         image: "",
         alt: "",
       });
-      pendingGalleryFiles.push(null);
+      pendingFiles.gallery.push(null);
       renderGalleryEditor();
     }),
   );
@@ -1164,9 +1410,326 @@ function renderAccountsEditor() {
   elements.accountEditor.appendChild(actions);
 }
 
+function renderRsvpSettingsFields() {
+  clearNode(elements.rsvpSettingsFields);
+
+  appendFields(elements.rsvpSettingsFields, [
+    createInputField({
+      label: "공개 페이지 RSVP 엔드포인트 URL",
+      value: invitation.rsvp.endpointUrl,
+      type: "url",
+      placeholder: "예: https://...workers.dev/rsvp",
+      help: "공개 초대장 페이지가 하객 응답을 저장할 주소입니다.",
+      onChange(value) {
+        invitation.rsvp.endpointUrl = value;
+      },
+    }),
+    createTextareaField({
+      label: "관리 메모 문구",
+      value: invitation.rsvp.adminLabel,
+      rows: 2,
+      help: "편집기 쪽 참고용 문구입니다.",
+      onChange(value) {
+        invitation.rsvp.adminLabel = value;
+      },
+    }),
+  ]);
+}
+
+function formatDateTime(value) {
+  if (!trimText(value)) {
+    return "";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("ko-KR", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
+  } catch (error) {
+    return value;
+  }
+}
+
+function parseJsonResponse(response) {
+  return response.json().catch(() => null);
+}
+
+function getRsvpAdminEndpoint() {
+  return trimText(invitation.rsvp.endpointUrl) || deriveRsvpEndpointFromPublish(trimText(elements.publishEndpointUrl.value));
+}
+
+function getAuthorizationHeader() {
+  return trimText(elements.publishPassword.value);
+}
+
+async function fetchRsvpResponses() {
+  const endpointUrl = getRsvpAdminEndpoint();
+  const password = getAuthorizationHeader();
+
+  if (!endpointUrl) {
+    throw new Error("먼저 RSVP 엔드포인트 URL을 입력해 주세요.");
+  }
+
+  if (!password) {
+    throw new Error("응답 관리에는 발행 비밀번호가 필요합니다.");
+  }
+
+  const response = await window.fetch(endpointUrl, {
+    headers: {
+      Authorization: `Bearer ${password}`,
+    },
+  });
+  const payload = await parseJsonResponse(response);
+
+  if (!response.ok) {
+    throw new Error(payload && payload.error ? payload.error : `응답을 불러오지 못했습니다. (${response.status})`);
+  }
+
+  return Array.isArray(payload && payload.responses) ? payload.responses : [];
+}
+
+async function updateRsvpResponse(id, patch) {
+  const endpointUrl = getRsvpAdminEndpoint();
+  const password = getAuthorizationHeader();
+  const response = await window.fetch(`${endpointUrl}/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${password}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(patch),
+  });
+  const payload = await parseJsonResponse(response);
+
+  if (!response.ok) {
+    throw new Error(payload && payload.error ? payload.error : `응답 수정에 실패했습니다. (${response.status})`);
+  }
+
+  return payload && payload.response ? payload.response : null;
+}
+
+async function deleteRsvpResponse(id) {
+  const endpointUrl = getRsvpAdminEndpoint();
+  const password = getAuthorizationHeader();
+  const response = await window.fetch(`${endpointUrl}/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${password}`,
+    },
+  });
+  const payload = await parseJsonResponse(response);
+
+  if (!response.ok) {
+    throw new Error(payload && payload.error ? payload.error : `응답 삭제에 실패했습니다. (${response.status})`);
+  }
+}
+
+function renderRsvpManagerList() {
+  clearNode(elements.rsvpManagerList);
+
+  if (trimText(invitation.rsvp.adminLabel)) {
+    elements.rsvpManagerList.appendChild(createHelpText(invitation.rsvp.adminLabel));
+  }
+
+  if (rsvpResponses.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "editor-empty";
+    empty.textContent = "아직 불러온 응답이 없습니다.";
+    elements.rsvpManagerList.appendChild(empty);
+    return;
+  }
+
+  const list = document.createElement("div");
+  list.className = "editor-response-list";
+
+  rsvpResponses.forEach((responseItem) => {
+    const card = document.createElement("article");
+    card.className = "editor-response-card";
+
+    const head = document.createElement("div");
+    head.className = "editor-response-head";
+
+    const titleWrap = document.createElement("div");
+    const name = document.createElement("h3");
+    name.className = "editor-response-name";
+    name.textContent = responseItem.guestName || "이름 없음";
+
+    const submitted = document.createElement("p");
+    submitted.className = "editor-help";
+    submitted.textContent = `${formatDateTime(responseItem.submittedAt)} 접수`;
+    titleWrap.append(name, submitted);
+
+    head.append(titleWrap);
+
+    const actions = document.createElement("div");
+    actions.className = "editor-action-row";
+    actions.appendChild(
+      createMiniButton("삭제", async () => {
+        const confirmed = window.confirm("이 RSVP 응답을 삭제할까요?");
+        if (!confirmed) {
+          return;
+        }
+
+        try {
+          await deleteRsvpResponse(responseItem.id);
+          rsvpResponses = rsvpResponses.filter((item) => item.id !== responseItem.id);
+          renderRsvpManagerList();
+          updateRsvpManagerStatus("응답을 삭제했습니다.");
+          showToast("응답을 삭제했습니다");
+        } catch (error) {
+          updateRsvpManagerStatus(error.message);
+          showToast("응답 삭제에 실패했습니다");
+        }
+      }),
+    );
+    head.appendChild(actions);
+
+    const meta = document.createElement("div");
+    meta.className = "editor-response-meta";
+    [
+      responseItem.attendance,
+      `동행 ${responseItem.companions || "0"}명`,
+      responseItem.meal,
+      responseItem.adminStatus || "미확인",
+    ]
+      .filter(Boolean)
+      .forEach((label) => {
+        const pill = document.createElement("span");
+        pill.className = "editor-response-pill";
+        pill.textContent = label;
+        meta.appendChild(pill);
+      });
+
+    const grid = document.createElement("div");
+    grid.className = "editor-response-grid";
+
+    const statusField = createSelectField({
+      label: "관리 상태",
+      value: responseItem.adminStatus || "미확인",
+      options: [
+        { value: "미확인", label: "미확인" },
+        { value: "확인 완료", label: "확인 완료" },
+        { value: "연락 필요", label: "연락 필요" },
+      ],
+      onChange(value) {
+        responseItem.adminStatus = value;
+      },
+    });
+
+    const memoField = createTextareaField({
+      label: "관리 메모",
+      value: responseItem.adminMemo || "",
+      rows: 3,
+      placeholder: "예: 좌석 요청 확인 필요",
+      onChange(value) {
+        responseItem.adminMemo = value;
+      },
+    });
+
+    grid.append(
+      statusField,
+      createTextareaField({
+        label: "하객 메시지",
+        value: responseItem.message || "",
+        rows: 3,
+        placeholder: "남긴 메시지가 없습니다.",
+        readOnly: true,
+        onChange() {
+          return;
+        },
+        help: "하객이 남긴 메시지는 읽기 전용으로 확인합니다.",
+      }),
+      memoField,
+    );
+
+    const saveRow = document.createElement("div");
+    saveRow.className = "editor-action-row";
+    saveRow.appendChild(
+      createMiniButton("상태 저장", async () => {
+        try {
+          const updated = await updateRsvpResponse(responseItem.id, {
+            adminStatus: responseItem.adminStatus || "미확인",
+            adminMemo: responseItem.adminMemo || "",
+          });
+          rsvpResponses = rsvpResponses.map((item) => (
+            item.id === responseItem.id ? (updated || responseItem) : item
+          ));
+          renderRsvpManagerList();
+          updateRsvpManagerStatus("응답 상태를 저장했습니다.");
+          showToast("응답 상태를 저장했습니다");
+        } catch (error) {
+          updateRsvpManagerStatus(error.message);
+          showToast("응답 상태 저장에 실패했습니다");
+        }
+      }),
+    );
+
+    card.append(head, meta, grid, saveRow);
+    list.appendChild(card);
+  });
+
+  elements.rsvpManagerList.appendChild(list);
+}
+
+function escapeCsv(value) {
+  const text = String(value == null ? "" : value);
+  if (/[",\n]/u.test(text)) {
+    return `"${text.replace(/"/gu, '""')}"`;
+  }
+  return text;
+}
+
+function downloadRsvpCsv() {
+  if (rsvpResponses.length === 0) {
+    updateRsvpManagerStatus("내보낼 RSVP 응답이 없습니다.");
+    showToast("먼저 RSVP 응답을 불러와 주세요");
+    return;
+  }
+
+  const rows = [
+    ["이름", "참석 여부", "동행 인원", "식사", "하객 메시지", "관리 상태", "관리 메모", "접수 시각"],
+    ...rsvpResponses.map((item) => [
+      item.guestName,
+      item.attendance,
+      item.companions,
+      item.meal,
+      item.message,
+      item.adminStatus,
+      item.adminMemo,
+      item.submittedAt,
+    ]),
+  ];
+
+  const csv = `${rows.map((row) => row.map(escapeCsv).join(",")).join("\n")}\n`;
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "wedding-rsvp-responses.csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  updateRsvpManagerStatus("RSVP 응답을 CSV로 내보냈습니다.");
+  showToast("CSV 파일을 다운로드했습니다");
+}
+
 function renderAll() {
   document.title = `${invitation.title} 편집`;
   renderBasicFields();
+  renderMediaEditor("hero", elements.heroMediaEditor, {
+    emptyText: "첫 화면 대표 이미지를 추가해 주세요.",
+    altLabel: "대표 이미지 대체 텍스트",
+    statusLabel: "대표 이미지",
+    wide: false,
+  });
+  renderMediaEditor("directions", elements.directionsMediaEditor, {
+    emptyText: "오시는 길 약도 이미지를 추가해 주세요.",
+    altLabel: "약도 이미지 대체 텍스트",
+    statusLabel: "약도 이미지",
+    wide: true,
+  });
   renderPersonFields(elements.groomFields, invitation.groom);
   renderPersonFields(elements.brideFields, invitation.bride);
   renderCeremonyFields();
@@ -1184,6 +1747,17 @@ function renderAll() {
   renderGalleryEditor();
   renderTimelineEditor();
   renderAccountsEditor();
+  renderRsvpSettingsFields();
+  renderRsvpManagerList();
+}
+
+function ensureDefaultRsvpEndpoint() {
+  if (trimText(invitation.rsvp.endpointUrl)) {
+    return;
+  }
+
+  invitation.rsvp.endpointUrl = deriveRsvpEndpointFromPublish(trimText(elements.publishEndpointUrl.value)) ||
+    DEFAULT_PUBLISH_ENDPOINT_URL.replace(/\/publish$/u, "/rsvp");
 }
 
 function saveInvitation() {
@@ -1197,7 +1771,7 @@ function saveInvitation() {
     return;
   }
 
-  const pendingCount = countPendingGalleryFiles();
+  const pendingCount = countPendingUploads();
   if (pendingCount > 0) {
     updateStatus(`편집 내용을 저장했습니다. 새 이미지 ${pendingCount}개는 이 탭에만 남아 있으며, 공개 반영은 발행 버튼을 눌러야 합니다.`);
   } else {
@@ -1213,11 +1787,14 @@ function resetInvitation() {
   }
 
   store.clearInvitation();
-  clearAllPendingGalleryFiles();
+  clearAllPendingFiles();
   invitation = store.createDefaultInvitation();
+  ensureDefaultRsvpEndpoint();
+  rsvpResponses = [];
   renderAll();
   updateStatus("기본 예시값으로 복원했습니다.");
   updatePublishStatus("공개 발행 전 상태입니다.");
+  updateRsvpManagerStatus("응답 목록을 초기화했습니다.");
   showToast("기본값으로 복원했습니다");
 }
 
@@ -1246,7 +1823,7 @@ function importJsonFile(event) {
   reader.onload = () => {
     try {
       const result = store.importInvitation(String(reader.result || ""));
-      clearAllPendingGalleryFiles();
+      clearAllPendingFiles();
       invitation = store.cloneInvitation(result.invitation);
       renderAll();
       updateStatus("JSON 파일을 불러와 저장했습니다.");
@@ -1276,11 +1853,13 @@ async function publishInvitation() {
     return;
   }
 
+  ensureDefaultRsvpEndpoint();
+
   const saved = store.saveInvitation(invitation);
   invitation = store.cloneInvitation(saved.invitation);
   renderAll();
 
-  setPublishBusy(true);
+  setBusy(true);
   updatePublishStatus("보호된 서버리스 엔드포인트로 발행 요청을 보내는 중입니다.");
 
   try {
@@ -1289,7 +1868,7 @@ async function publishInvitation() {
     const publishedContent = response && response.content ? response.content : payload.content;
 
     store.clearPublishedCache();
-    clearAllPendingGalleryFiles();
+    clearAllPendingFiles();
 
     const localSave = store.saveInvitation(publishedContent);
     invitation = store.cloneInvitation(localSave.invitation);
@@ -1300,21 +1879,25 @@ async function publishInvitation() {
       persistPublishSettings();
     }
 
+    const uploadedCount = Array.isArray(response && response.uploadedAssets)
+      ? response.uploadedAssets.length
+      : Array.isArray(response && response.uploadedSlots)
+        ? response.uploadedSlots.length
+        : 0;
+
     updateStatus("초안과 공개본을 함께 갱신했습니다.");
-    if (response && Array.isArray(response.uploadedSlots) && response.uploadedSlots.length > 0) {
-      updatePublishStatus(
-        `갤러리 이미지 ${response.uploadedSlots.length}개와 초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.`,
-      );
-    } else {
-      updatePublishStatus("초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.");
-    }
+    updatePublishStatus(
+      uploadedCount > 0
+        ? `이미지 ${uploadedCount}개와 초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.`
+        : "초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.",
+    );
 
     showToast("공유 페이지 발행을 시작했습니다");
   } catch (error) {
     updatePublishStatus(`발행에 실패했습니다. ${error.message}`);
     showToast("공개 발행에 실패했습니다");
   } finally {
-    setPublishBusy(false);
+    setBusy(false);
   }
 }
 
@@ -1324,7 +1907,7 @@ async function reloadPublishedInvitation() {
     return;
   }
 
-  setPublishBusy(true);
+  setBusy(true);
   updatePublishStatus("현재 공개본을 다시 불러오는 중입니다.");
 
   try {
@@ -1334,8 +1917,9 @@ async function reloadPublishedInvitation() {
       throw new Error("현재 공개된 content.json을 찾지 못했습니다.");
     }
 
-    clearAllPendingGalleryFiles();
+    clearAllPendingFiles();
     invitation = store.cloneInvitation(published);
+    ensureDefaultRsvpEndpoint();
     store.saveInvitation(invitation);
     renderAll();
     updateStatus("현재 공개본 기준으로 편집 초안을 다시 맞췄습니다.");
@@ -1345,7 +1929,24 @@ async function reloadPublishedInvitation() {
     updatePublishStatus(`공개본을 불러오지 못했습니다. ${error.message}`);
     showToast("공개본을 불러오지 못했습니다");
   } finally {
-    setPublishBusy(false);
+    setBusy(false);
+  }
+}
+
+async function loadRsvpResponses() {
+  setBusy(true);
+  updateRsvpManagerStatus("서버에 저장된 RSVP 응답을 불러오는 중입니다.");
+
+  try {
+    rsvpResponses = await fetchRsvpResponses();
+    renderRsvpManagerList();
+    updateRsvpManagerStatus(`응답 ${rsvpResponses.length}건을 불러왔습니다.`);
+    showToast("RSVP 응답을 불러왔습니다");
+  } catch (error) {
+    updateRsvpManagerStatus(error.message);
+    showToast("RSVP 응답을 불러오지 못했습니다");
+  } finally {
+    setBusy(false);
   }
 }
 
@@ -1359,6 +1960,8 @@ function bindEvents() {
   elements.importFileInput.addEventListener("change", importJsonFile);
   elements.publishInvitationButton.addEventListener("click", publishInvitation);
   elements.reloadPublishedButton.addEventListener("click", reloadPublishedInvitation);
+  elements.loadRsvpResponsesButton.addEventListener("click", loadRsvpResponses);
+  elements.exportRsvpResponsesButton.addEventListener("click", downloadRsvpCsv);
 
   [elements.publishEndpointUrl, elements.publicSiteUrl].forEach((input) => {
     input.addEventListener("input", () => {
@@ -1373,6 +1976,7 @@ function bindEvents() {
   window.addEventListener("storage", (event) => {
     if (event.key === store.CONTENT_STORAGE_KEY) {
       invitation = store.getInvitation();
+      ensureDefaultRsvpEndpoint();
       renderAll();
       updateStatus("다른 탭에서 저장된 편집값을 다시 불러왔습니다.");
       return;
@@ -1387,9 +1991,10 @@ function bindEvents() {
 
 async function init() {
   const hasLocalDraft = store.hasSavedInvitation();
-  invitation = await store.loadInvitation();
-  renderAll();
   hydratePublishSettings();
+  invitation = await store.loadInvitation();
+  ensureDefaultRsvpEndpoint();
+  renderAll();
   bindEvents();
 
   if (hasLocalDraft) {
@@ -1398,6 +2003,7 @@ async function init() {
     updateStatus("현재 공개본 또는 기본 예시값을 불러왔습니다.");
   }
   updatePublishStatus("서버리스 발행 엔드포인트를 연결하면 공개 페이지를 갱신할 수 있습니다.");
+  updateRsvpManagerStatus("응답을 불러오면 여기에서 관리할 수 있습니다.");
 }
 
 init();

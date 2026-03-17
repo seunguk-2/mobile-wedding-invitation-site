@@ -15,12 +15,13 @@
       "서로를 향한 따뜻한 마음으로 같은 길을 걷게 되었습니다. 기쁜 날, 소중한 분들을 모시고 감사의 마음을 전하고자 합니다. 편안한 걸음으로 오셔서 두 사람의 시작을 함께 축복해 주세요.",
     ui: {
       heroMessage: "두 사람이 한마음으로 같은 계절을 시작합니다.",
-      heroArtLabel: "서로의 계절이 되어",
-      heroArtCaption: "소중한 날을 함께 축복해 주세요",
+      heroImage: "",
+      heroImageAlt: "대표 이미지",
+      heroImageCaption: "소중한 날을 함께 축복해 주세요",
       galleryNote:
-        "웨딩 사진을 넣어 따뜻한 순간들을 담아보세요. 갤러리 이미지는 확대 없이 카드 형태로만 보여집니다.",
+        "사진을 누르면 전체 화면 캐러셀로 넘겨보실 수 있습니다.",
       accountNote: "참석이 어려우신 분들을 위해 계좌번호를 함께 안내드립니다.",
-      rsvpNote: "현재는 예시용 폼으로 동작하며, 입력 내용은 이 기기에만 저장됩니다.",
+      rsvpNote: "참석 여부를 남겨 주시면 예식 준비에 큰 도움이 됩니다.",
       footerTitle: "민준과 서연의 결혼식에 와 주셔서 감사합니다",
       footerCopy: "따뜻한 축복과 응원을 오래도록 간직하겠습니다.",
     },
@@ -56,6 +57,11 @@
       hall: "7층 그레이스홀",
       address: "서울특별시 중구 세종대로 110",
       detail: "서울시청역 5번 출구에서 도보 3분",
+      latitude: "37.5662952",
+      longitude: "126.9779451",
+      tmapLink: "",
+      directionsImage: "",
+      directionsImageAlt: "오시는 길 안내 이미지",
     },
     transport: [
       {
@@ -110,21 +116,21 @@
       },
       {
         title: "가을의 산책",
-        caption: "업로드한 사진은 확대 모달 없이 카드로만 노출됩니다.",
+        caption: "업로드한 사진은 전체 화면 캐러셀로도 넘겨볼 수 있습니다.",
         tones: ["#cfa083", "#895643"],
         image: "",
         alt: "가을의 산책 갤러리 이미지",
       },
       {
         title: "겨울의 대화",
-        caption: "카드 제목과 설명은 사진 위 오버레이로 유지됩니다.",
+        caption: "카드 제목과 설명은 사진 위 오버레이로 함께 보입니다.",
         tones: ["#ced6db", "#7a7b8c"],
         image: "",
         alt: "겨울의 대화 갤러리 이미지",
       },
       {
         title: "우리의 하루",
-        caption: "모바일 화면에서도 세로형 카드 비율을 유지합니다.",
+        caption: "모바일 화면에서도 손가락으로 자연스럽게 넘길 수 있습니다.",
         tones: ["#f0d9cf", "#c58d7d"],
         image: "",
         alt: "우리의 하루 갤러리 이미지",
@@ -190,6 +196,10 @@
         ],
       },
     ],
+    rsvp: {
+      endpointUrl: "https://mobile-wedding-invitation-site.ksu1949.workers.dev/rsvp",
+      adminLabel: "관리 페이지에서 응답을 확인하고 정리할 수 있습니다.",
+    },
   };
 
   function clone(value) {
@@ -231,8 +241,9 @@
   function normalizeUi(ui, fallback) {
     return {
       heroMessage: asText(ui && ui.heroMessage, fallback.heroMessage),
-      heroArtLabel: asText(ui && ui.heroArtLabel, fallback.heroArtLabel),
-      heroArtCaption: asText(ui && ui.heroArtCaption, fallback.heroArtCaption),
+      heroImage: asText(ui && ui.heroImage, fallback.heroImage),
+      heroImageAlt: asText(ui && ui.heroImageAlt, fallback.heroImageAlt),
+      heroImageCaption: asText(ui && ui.heroImageCaption, fallback.heroImageCaption),
       galleryNote: asText(ui && ui.galleryNote, fallback.galleryNote),
       accountNote: asText(ui && ui.accountNote, fallback.accountNote),
       rsvpNote: asText(ui && ui.rsvpNote, fallback.rsvpNote),
@@ -261,6 +272,18 @@
       hall: asText(venue && venue.hall, fallback.hall),
       address: asText(venue && venue.address, fallback.address),
       detail: asText(venue && venue.detail, fallback.detail),
+      latitude: asText(venue && venue.latitude, fallback.latitude),
+      longitude: asText(venue && venue.longitude, fallback.longitude),
+      tmapLink: asText(venue && venue.tmapLink, fallback.tmapLink),
+      directionsImage: asText(venue && venue.directionsImage, fallback.directionsImage),
+      directionsImageAlt: asText(venue && venue.directionsImageAlt, fallback.directionsImageAlt),
+    };
+  }
+
+  function normalizeRsvp(rsvp, fallback) {
+    return {
+      endpointUrl: asText(rsvp && rsvp.endpointUrl, fallback.endpointUrl),
+      adminLabel: asText(rsvp && rsvp.adminLabel, fallback.adminLabel),
     };
   }
 
@@ -394,6 +417,7 @@
       gallery: normalizeGallery(base.gallery, DEFAULT_INVITATION.gallery),
       timeline: normalizeTimeline(base.timeline, DEFAULT_INVITATION.timeline),
       accounts: normalizeAccounts(base.accounts, DEFAULT_INVITATION.accounts),
+      rsvp: normalizeRsvp(base.rsvp, DEFAULT_INVITATION.rsvp),
     };
 
     invitation.ceremony.weekday = buildWeekday(
