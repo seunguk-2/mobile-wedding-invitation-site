@@ -1,7 +1,8 @@
-name = "wedding-invitation-publisher"
+name = "mobile-wedding-invitation-site"
 main = "worker/publish-endpoint.js"
 compatibility_date = "2026-03-17"
 workers_dev = true
+keep_vars = true
 
 # Configure these in the Cloudflare dashboard or with `wrangler secret put`.
 # Do not commit real secret values into this file.
