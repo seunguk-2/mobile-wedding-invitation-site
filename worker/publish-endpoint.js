@@ -190,15 +190,53 @@ function buildGitHubHeaders(config) {
 }
 
 async function parseGitHubError(response) {
+  const clonedResponse = response.clone();
+  const acceptedPermissions = response.headers.get("x-accepted-github-permissions");
+  const requestId = response.headers.get("x-github-request-id");
+
   try {
     const payload = await response.json();
+    const details = [];
     if (payload && payload.message) {
-      return `${payload.message} (${response.status})`;
+      details.push(payload.message);
+    }
+    if (acceptedPermissions) {
+      details.push(`required permissions: ${acceptedPermissions}`);
+    }
+    if (requestId) {
+      details.push(`request id: ${requestId}`);
+    }
+    if (details.length > 0) {
+      return `${details.join(" / ")} (${response.status})`;
     }
   } catch (error) {
+    const text = await clonedResponse.text().catch(() => "");
+    const details = [];
+    if (text) {
+      details.push(text.slice(0, 300));
+    }
+    if (acceptedPermissions) {
+      details.push(`required permissions: ${acceptedPermissions}`);
+    }
+    if (requestId) {
+      details.push(`request id: ${requestId}`);
+    }
+    if (details.length > 0) {
+      return `${details.join(" / ")} (${response.status})`;
+    }
     return `GitHub API 요청에 실패했습니다. (${response.status})`;
   }
 
+  const details = [];
+  if (acceptedPermissions) {
+    details.push(`required permissions: ${acceptedPermissions}`);
+  }
+  if (requestId) {
+    details.push(`request id: ${requestId}`);
+  }
+  if (details.length > 0) {
+    return `${details.join(" / ")} (${response.status})`;
+  }
   return `GitHub API 요청에 실패했습니다. (${response.status})`;
 }
 
