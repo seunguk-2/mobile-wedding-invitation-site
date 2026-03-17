@@ -1,16 +1,18 @@
 const PUBLISHED_CONTENT_PATH = "content.json";
 const DEFAULT_COMMIT_MESSAGE = "모바일 청첩장 내용 업데이트";
 
-addEventListener("fetch", (event) => {
-  event.respondWith(handleRequest(event.request));
-});
+export default {
+  async fetch(request, env) {
+    return handleRequest(request, env);
+  },
+};
 
 function readBinding(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function getAllowedOrigin(request) {
-  const configuredOrigin = readBinding(typeof ALLOWED_ORIGIN === "string" ? ALLOWED_ORIGIN : "");
+function getAllowedOrigin(request, env) {
+  const configuredOrigin = readBinding(env.ALLOWED_ORIGIN);
   const requestOrigin = readBinding(request.headers.get("Origin"));
 
   if (!configuredOrigin) {
@@ -20,8 +22,8 @@ function getAllowedOrigin(request) {
   return requestOrigin === configuredOrigin ? configuredOrigin : "";
 }
 
-function buildCorsHeaders(request) {
-  const origin = getAllowedOrigin(request);
+function buildCorsHeaders(request, env) {
+  const origin = getAllowedOrigin(request, env);
   const headers = {
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -35,8 +37,8 @@ function buildCorsHeaders(request) {
   return headers;
 }
 
-function buildJsonResponse(request, payload, status) {
-  const headers = new Headers(buildCorsHeaders(request));
+function buildJsonResponse(request, env, payload, status) {
+  const headers = new Headers(buildCorsHeaders(request, env));
   headers.set("Cache-Control", "no-store");
   headers.set("Content-Type", "application/json; charset=utf-8");
   headers.set("X-Content-Type-Options", "nosniff");
@@ -46,8 +48,8 @@ function buildJsonResponse(request, payload, status) {
   });
 }
 
-function ensureAllowedOrigin(request) {
-  const configuredOrigin = readBinding(typeof ALLOWED_ORIGIN === "string" ? ALLOWED_ORIGIN : "");
+function ensureAllowedOrigin(request, env) {
+  const configuredOrigin = readBinding(env.ALLOWED_ORIGIN);
   if (!configuredOrigin) {
     return true;
   }
@@ -55,18 +57,18 @@ function ensureAllowedOrigin(request) {
   return readBinding(request.headers.get("Origin")) === configuredOrigin;
 }
 
-function getPublicSiteBaseUrl() {
-  return readBinding(typeof PUBLIC_SITE_BASE_URL === "string" ? PUBLIC_SITE_BASE_URL : "").replace(/\/+$/u, "");
+function getPublicSiteBaseUrl(env) {
+  return readBinding(env.PUBLIC_SITE_BASE_URL).replace(/\/+$/u, "");
 }
 
-function getRequiredConfig() {
+function getRequiredConfig(env) {
   return {
-    githubOwner: readBinding(typeof GITHUB_OWNER === "string" ? GITHUB_OWNER : ""),
-    githubRepo: readBinding(typeof GITHUB_REPO === "string" ? GITHUB_REPO : ""),
-    githubBranch: readBinding(typeof GITHUB_BRANCH === "string" ? GITHUB_BRANCH : "") || "main",
-    githubToken: readBinding(typeof GITHUB_TOKEN === "string" ? GITHUB_TOKEN : ""),
-    publishPassword: readBinding(typeof PUBLISH_PASSWORD === "string" ? PUBLISH_PASSWORD : ""),
-    publicSiteBaseUrl: getPublicSiteBaseUrl(),
+    githubOwner: readBinding(env.GITHUB_OWNER),
+    githubRepo: readBinding(env.GITHUB_REPO),
+    githubBranch: readBinding(env.GITHUB_BRANCH) || "main",
+    githubToken: readBinding(env.GITHUB_TOKEN),
+    publishPassword: readBinding(env.PUBLISH_PASSWORD),
+    publicSiteBaseUrl: getPublicSiteBaseUrl(env),
   };
 }
 
@@ -317,52 +319,63 @@ async function publishContent(config, payload) {
   };
 }
 
-async function handleRequest(request) {
+async function handleRequest(request, env) {
   const url = new URL(request.url);
 
   if (request.method === "OPTIONS") {
     return new Response(null, {
-      status: ensureAllowedOrigin(request) ? 204 : 403,
-      headers: buildCorsHeaders(request),
+      status: ensureAllowedOrigin(request, env) ? 204 : 403,
+      headers: buildCorsHeaders(request, env),
     });
   }
 
   if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/publish")) {
-    return buildJsonResponse(request, {
-      ok: true,
-      service: "wedding-invitation-publisher",
-      publicSiteUrl: `${getPublicSiteBaseUrl()}/`,
-    });
+    return buildJsonResponse(
+      request,
+      env,
+      {
+        ok: true,
+        service: "wedding-invitation-publisher",
+        publicSiteUrl: `${getPublicSiteBaseUrl(env)}/`,
+      },
+      200,
+    );
   }
 
   if (request.method !== "POST" || (url.pathname !== "/" && url.pathname !== "/publish")) {
-    return buildJsonResponse(request, { ok: false, error: "지원하지 않는 경로입니다." }, 404);
+    return buildJsonResponse(request, env, { ok: false, error: "지원하지 않는 경로입니다." }, 404);
   }
 
-  if (!ensureAllowedOrigin(request)) {
-    return buildJsonResponse(request, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
+  if (!ensureAllowedOrigin(request, env)) {
+    return buildJsonResponse(request, env, { ok: false, error: "허용되지 않은 Origin입니다." }, 403);
   }
 
   try {
-    const config = getRequiredConfig();
+    const config = getRequiredConfig(env);
     assertConfig(config);
 
     if (!authorizeRequest(request, config)) {
-      return buildJsonResponse(request, { ok: false, error: "발행 비밀번호가 올바르지 않습니다." }, 401);
+      return buildJsonResponse(request, env, { ok: false, error: "발행 비밀번호가 올바르지 않습니다." }, 401);
     }
 
     const payload = validatePublishPayload(await parseJsonBody(request));
     const result = await publishContent(config, payload);
 
-    return buildJsonResponse(request, {
-      ok: true,
-      content: result.content,
-      uploadedSlots: result.uploadedSlots,
-      publicSiteUrl: result.publicSiteUrl,
-    });
+    return buildJsonResponse(
+      request,
+      env,
+      {
+        ok: true,
+        content: result.content,
+        uploadedSlots: result.uploadedSlots,
+        publicSiteUrl: result.publicSiteUrl,
+      },
+      200,
+    );
   } catch (error) {
     return buildJsonResponse(
       request,
+      env,
       {
         ok: false,
         error: error && error.message ? error.message : "발행 중 알 수 없는 오류가 발생했습니다.",
