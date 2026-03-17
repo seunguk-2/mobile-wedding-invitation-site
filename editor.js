@@ -2,6 +2,8 @@
 
 const store = window.WeddingInvitationStore;
 const PUBLISH_PASSWORD_SESSION_KEY = "wedding-invitation-publish-password-v1";
+const DEFAULT_PUBLISH_ENDPOINT_URL = "https://mobile-wedding-invitation-site.ksu1949.workers.dev/publish";
+const DEFAULT_PUBLIC_SITE_URL = "https://seunguk-2.github.io/mobile-wedding-invitation-site/";
 
 let invitation = store.createDefaultInvitation();
 let toastTimer = 0;
@@ -432,8 +434,9 @@ function updatePublishPreviewLink() {
 
 function hydratePublishSettings() {
   const saved = store.getPublishSettings() || {};
-  elements.publishEndpointUrl.value = saved.endpointUrl || "";
-  elements.publicSiteUrl.value = saved.publicSiteUrl || guessPublicSiteUrlFromLocation();
+  elements.publishEndpointUrl.value = saved.endpointUrl || DEFAULT_PUBLISH_ENDPOINT_URL;
+  elements.publicSiteUrl.value =
+    saved.publicSiteUrl || DEFAULT_PUBLIC_SITE_URL || guessPublicSiteUrlFromLocation();
   elements.publishPassword.value = getStoredPublishPassword();
   updatePublishPreviewLink();
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "wedding-invitation-v3";
+const CACHE_NAME = "wedding-invitation-v4";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -86,8 +86,12 @@ self.addEventListener("fetch", (event) => {
 
   const isContentRequest = url.pathname.endsWith("/content.json");
   const isUploadRequest = url.pathname.includes("/uploads/");
+  const isEditorRequest =
+    url.pathname.endsWith("/editor.html") ||
+    url.pathname.endsWith("/editor.js") ||
+    url.pathname.endsWith("/editor.css");
 
-  if (isContentRequest || isUploadRequest) {
+  if (isContentRequest || isUploadRequest || isEditorRequest) {
     event.respondWith(
       networkFirst(event.request).catch(async () => {
         const cached = await caches.match(buildCacheKey(event.request));
