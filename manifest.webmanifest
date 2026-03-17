@@ -1,0 +1,18 @@
+{
+  "name": "민준과 서연의 모바일 청첩장",
+  "short_name": "모바일 청첩장",
+  "description": "민준과 서연의 결혼식에 초대합니다.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f6eee6",
+  "theme_color": "#f4e9df",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

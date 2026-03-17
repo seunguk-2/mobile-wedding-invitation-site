@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#f3e1d6" />
+      <stop offset="100%" stop-color="#b36955" />
+    </linearGradient>
+    <linearGradient id="ring" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff8f3" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#f8ede7" stop-opacity="0.7" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="132" fill="url(#bg)" />
+  <path
+    d="M128 306c0-100.5 61.6-182 128-182s128 81.5 128 182v78H128z"
+    fill="#f9efe6"
+    fill-opacity="0.22"
+  />
+  <circle cx="330" cy="206" r="108" fill="none" stroke="url(#ring)" stroke-width="10" />
+  <circle cx="202" cy="254" r="64" fill="none" stroke="url(#ring)" stroke-width="10" />
+  <path
+    d="M382 118c24 0 42 22 42 50 0 30-25 55-56 88-31-33-56-58-56-88 0-28 18-50 42-50 13 0 22 5 29 14 7-9 16-14 29-14z"
+    fill="#fff7f1"
+    fill-opacity="0.34"
+  />
+  <path
+    d="M180 322c-7 0-13 6-13 13 0 8 6 14 13 14 8 0 14-6 14-14 0-7-6-13-14-13z"
+    fill="#fff7f1"
+  />
+  <path
+    d="M256 350c47 0 86 34 94 78H162c8-44 47-78 94-78z"
+    fill="#fff7f1"
+    fill-opacity="0.9"
+  />
+  <path
+    d="M216 292c0-22 18-40 40-40s40 18 40 40-18 40-40 40-40-18-40-40z"
+    fill="#fff7f1"
+    fill-opacity="0.9"
+  />
+</svg>
