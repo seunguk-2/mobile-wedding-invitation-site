@@ -1,0 +1,7 @@
+GITHUB_OWNER=seunguk-2
+GITHUB_REPO=mobile-wedding-invitation-site
+GITHUB_BRANCH=main
+PUBLIC_SITE_BASE_URL=https://seunguk-2.github.io/mobile-wedding-invitation-site
+ALLOWED_ORIGIN=https://seunguk-2.github.io
+GITHUB_TOKEN=github_fine_grained_token_here
+PUBLISH_PASSWORD=choose_a_strong_publish_password_here

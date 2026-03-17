@@ -1,10 +1,7 @@
 "use strict";
 
 const store = window.WeddingInvitationStore;
-const TOKEN_SESSION_KEY = "wedding-invitation-publish-token-v1";
-const DEFAULT_BRANCH = "main";
-const DEFAULT_COMMIT_MESSAGE = "모바일 청첩장 내용 업데이트";
-const GITHUB_API_VERSION = "2022-11-28";
+const PUBLISH_PASSWORD_SESSION_KEY = "wedding-invitation-publish-password-v1";
 
 let invitation = store.createDefaultInvitation();
 let toastTimer = 0;
@@ -27,11 +24,9 @@ const elements = {
   importInvitationButton: document.getElementById("importInvitationButton"),
   importFileInput: document.getElementById("importFileInput"),
   editorStatus: document.getElementById("editorStatus"),
-  publishToken: document.getElementById("publishToken"),
-  publishOwner: document.getElementById("publishOwner"),
-  publishRepo: document.getElementById("publishRepo"),
-  publishBranch: document.getElementById("publishBranch"),
-  publishCommitMessage: document.getElementById("publishCommitMessage"),
+  publishEndpointUrl: document.getElementById("publishEndpointUrl"),
+  publishPassword: document.getElementById("publishPassword"),
+  publicSiteUrl: document.getElementById("publicSiteUrl"),
   publishInvitationButton: document.getElementById("publishInvitationButton"),
   reloadPublishedButton: document.getElementById("reloadPublishedButton"),
   publishStatus: document.getElementById("publishStatus"),
@@ -369,111 +364,77 @@ function trimText(value) {
   return String(value || "").trim();
 }
 
-function getStoredPublishToken() {
+function getStoredPublishPassword() {
   try {
-    return window.sessionStorage.getItem(TOKEN_SESSION_KEY) || "";
+    return window.sessionStorage.getItem(PUBLISH_PASSWORD_SESSION_KEY) || "";
   } catch (error) {
     return "";
   }
 }
 
-function storePublishToken(token) {
+function storePublishPassword(password) {
   try {
-    if (token) {
-      window.sessionStorage.setItem(TOKEN_SESSION_KEY, token);
+    if (password) {
+      window.sessionStorage.setItem(PUBLISH_PASSWORD_SESSION_KEY, password);
       return;
     }
-    window.sessionStorage.removeItem(TOKEN_SESSION_KEY);
+    window.sessionStorage.removeItem(PUBLISH_PASSWORD_SESSION_KEY);
   } catch (error) {
     return;
   }
 }
 
-function guessPublishSettingsFromLocation() {
-  const hostname = window.location.hostname || "";
-  const guessed = {
-    owner: "",
-    repo: "",
-    branch: DEFAULT_BRANCH,
-    commitMessage: DEFAULT_COMMIT_MESSAGE,
-  };
+function guessPublicSiteUrlFromLocation() {
+  const url = new URL(window.location.href);
+  const segments = url.pathname.split("/").filter(Boolean);
 
-  if (!hostname.endsWith(".github.io")) {
-    return guessed;
+  if (segments.length === 0) {
+    return `${url.origin}/`;
   }
 
-  guessed.owner = hostname.replace(/\.github\.io$/u, "");
-
-  const segments = window.location.pathname.split("/").filter(Boolean);
-  if (segments.length === 0 || segments[0].endsWith(".html")) {
-    guessed.repo = `${guessed.owner}.github.io`;
-  } else {
-    guessed.repo = segments[0];
+  if (segments[0].endsWith(".html")) {
+    return `${url.origin}/`;
   }
 
-  return guessed;
+  return `${url.origin}/${segments[0]}/`;
 }
 
 function getPublishSettingsFromForm() {
   return {
-    token: trimText(elements.publishToken.value),
-    owner: trimText(elements.publishOwner.value),
-    repo: trimText(elements.publishRepo.value),
-    branch: trimText(elements.publishBranch.value) || DEFAULT_BRANCH,
-    commitMessage: trimText(elements.publishCommitMessage.value) || DEFAULT_COMMIT_MESSAGE,
+    endpointUrl: trimText(elements.publishEndpointUrl.value),
+    publishPassword: trimText(elements.publishPassword.value),
+    publicSiteUrl: trimText(elements.publicSiteUrl.value),
   };
 }
 
 function persistPublishSettings() {
   const settings = getPublishSettingsFromForm();
   store.savePublishSettings({
-    owner: settings.owner,
-    repo: settings.repo,
-    branch: settings.branch,
-    commitMessage: settings.commitMessage,
+    endpointUrl: settings.endpointUrl,
+    publicSiteUrl: settings.publicSiteUrl,
   });
-  storePublishToken(settings.token);
+  storePublishPassword(settings.publishPassword);
   updatePublishPreviewLink();
   return settings;
 }
 
-function buildPagesUrl(owner, repo) {
-  if (!owner || !repo) {
-    return "";
-  }
-
-  if (repo === `${owner}.github.io`) {
-    return `https://${owner}.github.io/`;
-  }
-
-  return `https://${owner}.github.io/${repo}/`;
-}
-
 function updatePublishPreviewLink() {
-  const settings = getPublishSettingsFromForm();
-  const previewUrl = buildPagesUrl(settings.owner, settings.repo);
-
-  if (!previewUrl) {
-    elements.publishPreviewLink.textContent = "저장소 정보를 입력하면 공개 주소가 표시됩니다.";
+  const publicSiteUrl = trimText(elements.publicSiteUrl.value);
+  if (!publicSiteUrl) {
+    elements.publishPreviewLink.textContent = "공개 사이트 주소를 입력하면 이곳에 표시됩니다.";
     elements.publishPreviewLink.href = "./index.html";
     return;
   }
 
-  elements.publishPreviewLink.textContent = previewUrl;
-  elements.publishPreviewLink.href = previewUrl;
+  elements.publishPreviewLink.textContent = publicSiteUrl;
+  elements.publishPreviewLink.href = publicSiteUrl;
 }
 
 function hydratePublishSettings() {
-  const guessed = guessPublishSettingsFromLocation();
   const saved = store.getPublishSettings() || {};
-
-  elements.publishOwner.value = saved.owner || guessed.owner || "";
-  elements.publishRepo.value = saved.repo || guessed.repo || "";
-  elements.publishBranch.value = saved.branch || guessed.branch || DEFAULT_BRANCH;
-  elements.publishCommitMessage.value =
-    saved.commitMessage || guessed.commitMessage || DEFAULT_COMMIT_MESSAGE;
-  elements.publishToken.value = getStoredPublishToken();
-
+  elements.publishEndpointUrl.value = saved.endpointUrl || "";
+  elements.publicSiteUrl.value = saved.publicSiteUrl || guessPublicSiteUrlFromLocation();
+  elements.publishPassword.value = getStoredPublishPassword();
   updatePublishPreviewLink();
 }
 
@@ -488,27 +449,6 @@ function setPublishBusy(isBusy) {
   ].forEach((button) => {
     button.disabled = isBusy;
   });
-}
-
-function encodeRepoPath(path) {
-  return path
-    .split("/")
-    .filter(Boolean)
-    .map((segment) => encodeURIComponent(segment))
-    .join("/");
-}
-
-function encodeTextAsBase64(text) {
-  const bytes = new TextEncoder().encode(text);
-  const chunkSize = 0x8000;
-  let binary = "";
-
-  for (let index = 0; index < bytes.length; index += chunkSize) {
-    const chunk = bytes.subarray(index, index + chunkSize);
-    binary += String.fromCharCode(...chunk);
-  }
-
-  return window.btoa(binary);
 }
 
 function readFileAsBase64(file) {
@@ -526,108 +466,8 @@ function readFileAsBase64(file) {
   });
 }
 
-async function parseGitHubError(response) {
-  try {
-    const payload = await response.json();
-    if (payload && payload.message) {
-      return `${payload.message} (${response.status})`;
-    }
-  } catch (error) {
-    return `GitHub API 요청에 실패했습니다. (${response.status})`;
-  }
-
-  return `GitHub API 요청에 실패했습니다. (${response.status})`;
-}
-
-function buildGitHubHeaders(token) {
-  return {
-    Accept: "application/vnd.github+json",
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
-    "X-GitHub-Api-Version": GITHUB_API_VERSION,
-  };
-}
-
-async function getGitHubContentMeta(settings, path) {
-  const apiUrl =
-    `https://api.github.com/repos/${encodeURIComponent(settings.owner)}` +
-    `/${encodeURIComponent(settings.repo)}/contents/${encodeRepoPath(path)}` +
-    `?ref=${encodeURIComponent(settings.branch)}`;
-
-  const response = await window.fetch(apiUrl, {
-    headers: buildGitHubHeaders(settings.token),
-  });
-
-  if (response.status === 404) {
-    return null;
-  }
-
-  if (!response.ok) {
-    throw new Error(await parseGitHubError(response));
-  }
-
-  return response.json();
-}
-
-async function upsertGitHubFile(settings, options) {
-  const existing = await getGitHubContentMeta(settings, options.path);
-  const apiUrl =
-    `https://api.github.com/repos/${encodeURIComponent(settings.owner)}` +
-    `/${encodeURIComponent(settings.repo)}/contents/${encodeRepoPath(options.path)}`;
-
-  const body = {
-    message: options.message,
-    content: options.content,
-    branch: settings.branch,
-  };
-
-  if (existing && existing.sha) {
-    body.sha = existing.sha;
-  }
-
-  const response = await window.fetch(apiUrl, {
-    method: "PUT",
-    headers: buildGitHubHeaders(settings.token),
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    throw new Error(await parseGitHubError(response));
-  }
-
-  return response.json();
-}
-
-function getFileExtension(file) {
-  const name = String(file.name || "");
-  const matched = name.match(/\.([a-zA-Z0-9]+)$/u);
-  if (matched) {
-    return matched[1].toLowerCase();
-  }
-
-  switch (file.type) {
-    case "image/png":
-      return "png";
-    case "image/webp":
-      return "webp";
-    case "image/gif":
-      return "gif";
-    case "image/heic":
-      return "heic";
-    case "image/heif":
-      return "heif";
-    default:
-      return "jpg";
-  }
-}
-
-function buildGalleryUploadPath(index, file) {
-  const slot = String(index + 1).padStart(2, "0");
-  return `uploads/gallery-${slot}.${getFileExtension(file)}`;
-}
-
-async function uploadPendingGalleryImages(settings, versionStamp) {
-  const uploadedSlots = [];
+async function buildPublishRequestPayload() {
+  const images = [];
 
   for (let index = 0; index < pendingGalleryFiles.length; index += 1) {
     const pending = getPendingGalleryFile(index);
@@ -635,22 +475,48 @@ async function uploadPendingGalleryImages(settings, versionStamp) {
       continue;
     }
 
-    const path = buildGalleryUploadPath(index, pending.file);
-    const base64 = await readFileAsBase64(pending.file);
-    await upsertGitHubFile(settings, {
-      path,
-      content: base64,
-      message: `${settings.commitMessage} - 갤러리 ${index + 1}`,
+    images.push({
+      slot: index + 1,
+      fileName: pending.file.name,
+      mimeType: pending.file.type || "application/octet-stream",
+      contentBase64: await readFileAsBase64(pending.file),
     });
-
-    invitation.gallery[index].image = `${path}?v=${versionStamp}`;
-    if (!trimText(invitation.gallery[index].alt)) {
-      invitation.gallery[index].alt = `${trimText(invitation.gallery[index].title) || `갤러리 ${index + 1}`} 이미지`;
-    }
-    uploadedSlots.push(index + 1);
   }
 
-  return uploadedSlots;
+  return {
+    content: createSerializableInvitation(invitation),
+    images,
+  };
+}
+
+async function parsePublishError(response) {
+  try {
+    const payload = await response.json();
+    if (payload && payload.error) {
+      return payload.error;
+    }
+  } catch (error) {
+    return `발행 엔드포인트 호출에 실패했습니다. (${response.status})`;
+  }
+
+  return `발행 엔드포인트 호출에 실패했습니다. (${response.status})`;
+}
+
+async function postPublishRequest(settings, payload) {
+  const response = await window.fetch(settings.endpointUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${settings.publishPassword}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parsePublishError(response));
+  }
+
+  return response.json();
 }
 
 function renderBasicFields() {
@@ -1395,15 +1261,15 @@ function importJsonFile(event) {
 
 async function publishInvitation() {
   const settings = persistPublishSettings();
-  if (!settings.token) {
-    updatePublishStatus("GitHub 토큰을 입력해 주세요.");
-    showToast("GitHub 토큰이 필요합니다");
+  if (!settings.endpointUrl) {
+    updatePublishStatus("발행 엔드포인트 URL을 입력해 주세요.");
+    showToast("발행 엔드포인트 URL이 필요합니다");
     return;
   }
 
-  if (!settings.owner || !settings.repo) {
-    updatePublishStatus("저장소 소유자와 이름을 입력해 주세요.");
-    showToast("저장소 정보를 입력해 주세요");
+  if (!settings.publishPassword) {
+    updatePublishStatus("발행 비밀번호를 입력해 주세요.");
+    showToast("발행 비밀번호가 필요합니다");
     return;
   }
 
@@ -1412,39 +1278,32 @@ async function publishInvitation() {
   renderAll();
 
   setPublishBusy(true);
-  updatePublishStatus("저장소에 이미지와 content.json을 반영하는 중입니다.");
+  updatePublishStatus("보호된 서버리스 엔드포인트로 발행 요청을 보내는 중입니다.");
 
   try {
-    const versionStamp = Date.now();
-    const uploadedSlots = await uploadPendingGalleryImages(settings, versionStamp);
-    const publishPayload = createSerializableInvitation(invitation);
-
-    await upsertGitHubFile(settings, {
-      path: store.PUBLISHED_CONTENT_PATH,
-      content: encodeTextAsBase64(`${JSON.stringify(publishPayload, null, 2)}\n`),
-      message: settings.commitMessage,
-    });
+    const payload = await buildPublishRequestPayload();
+    const response = await postPublishRequest(settings, payload);
+    const publishedContent = response && response.content ? response.content : payload.content;
 
     store.clearPublishedCache();
     clearAllPendingGalleryFiles();
 
-    const localSave = store.saveInvitation(publishPayload);
+    const localSave = store.saveInvitation(publishedContent);
     invitation = store.cloneInvitation(localSave.invitation);
     renderAll();
 
-    const previewUrl = buildPagesUrl(settings.owner, settings.repo);
+    if (response && response.publicSiteUrl) {
+      elements.publicSiteUrl.value = response.publicSiteUrl;
+      persistPublishSettings();
+    }
+
     updateStatus("초안과 공개본을 함께 갱신했습니다.");
-    if (uploadedSlots.length > 0) {
+    if (response && Array.isArray(response.uploadedSlots) && response.uploadedSlots.length > 0) {
       updatePublishStatus(
-        `갤러리 이미지 ${uploadedSlots.length}개와 초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.`,
+        `갤러리 이미지 ${response.uploadedSlots.length}개와 초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.`,
       );
     } else {
       updatePublishStatus("초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.");
-    }
-
-    if (previewUrl) {
-      elements.publishPreviewLink.href = previewUrl;
-      elements.publishPreviewLink.textContent = previewUrl;
     }
 
     showToast("공유 페이지 발행을 시작했습니다");
@@ -1498,19 +1357,14 @@ function bindEvents() {
   elements.publishInvitationButton.addEventListener("click", publishInvitation);
   elements.reloadPublishedButton.addEventListener("click", reloadPublishedInvitation);
 
-  [
-    elements.publishOwner,
-    elements.publishRepo,
-    elements.publishBranch,
-    elements.publishCommitMessage,
-  ].forEach((input) => {
+  [elements.publishEndpointUrl, elements.publicSiteUrl].forEach((input) => {
     input.addEventListener("input", () => {
       persistPublishSettings();
     });
   });
 
-  elements.publishToken.addEventListener("input", () => {
-    storePublishToken(trimText(elements.publishToken.value));
+  elements.publishPassword.addEventListener("input", () => {
+    storePublishPassword(trimText(elements.publishPassword.value));
   });
 
   window.addEventListener("storage", (event) => {
@@ -1540,7 +1394,7 @@ async function init() {
   } else {
     updateStatus("현재 공개본 또는 기본 예시값을 불러왔습니다.");
   }
-  updatePublishStatus("저장소 정보를 확인한 뒤 공개 발행을 진행할 수 있습니다.");
+  updatePublishStatus("서버리스 발행 엔드포인트를 연결하면 공개 페이지를 갱신할 수 있습니다.");
 }
 
 init();
