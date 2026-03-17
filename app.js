@@ -623,14 +623,15 @@ function buildTmapHref() {
     return trimText(invitation.venue.tmapLink);
   }
 
-  if (!hasCoordinates()) {
-    return "";
+  if (hasCoordinates()) {
+    const goalName = encodeURIComponent(venueText() || invitation.venue.name || invitation.venue.address);
+    const goalX = encodeURIComponent(trimText(invitation.venue.longitude));
+    const goalY = encodeURIComponent(trimText(invitation.venue.latitude));
+    return `tmap://route?goalname=${goalName}&goalx=${goalX}&goaly=${goalY}`;
   }
 
-  const goalName = encodeURIComponent(venueText() || invitation.venue.name || invitation.venue.address);
-  const goalX = encodeURIComponent(trimText(invitation.venue.longitude));
-  const goalY = encodeURIComponent(trimText(invitation.venue.latitude));
-  return `tmap://route?goalname=${goalName}&goalx=${goalX}&goaly=${goalY}`;
+  const searchName = encodeURIComponent(venueText() || invitation.venue.name || invitation.venue.address);
+  return searchName ? `tmap://search?name=${searchName}` : "";
 }
 
 function buildMapLinks() {
