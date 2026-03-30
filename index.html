@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <title>민준과 서연의 모바일 청첩장</title>
+    <title>Wedding Invitation</title>
     <meta
       name="description"
-      content="소중한 분들을 민준과 서연의 결혼식에 초대합니다."
+      content="You are warmly invited to celebrate our wedding."
     />
     <meta name="theme-color" content="#f4e9df" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="모바일 청첩장" />
+    <meta name="apple-mobile-web-app-title" content="Wedding Invitation" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
@@ -30,21 +30,21 @@
     <div class="shell">
       <header class="hero" id="top">
         <div class="hero-card">
-          <p class="hero-kicker">모바일 초대장</p>
+          <p class="hero-kicker">Wedding Invitation</p>
           <div class="hero-layout">
             <div class="hero-copy">
               <p class="hero-date" id="heroDate"></p>
               <h1 class="hero-title">
                 <span id="groomName"></span>
-                <span class="hero-connector">그리고</span>
+                <span class="hero-connector">&amp;</span>
                 <span id="brideName"></span>
               </h1>
               <p class="hero-venue" id="heroVenue"></p>
               <p class="hero-message" id="heroMessage"></p>
               <div class="hero-actions">
-                <a class="primary-button" href="#intro">초대장 보기</a>
+                <a class="primary-button" href="#intro">View Invitation</a>
                 <button class="secondary-button" id="shareButton" type="button">
-                  공유하기
+                  Share
                 </button>
               </div>
             </div>
@@ -56,62 +56,60 @@
           </div>
         </div>
 
-        <nav class="quick-nav" aria-label="바로가기">
-          <a href="#intro">초대</a>
-          <a href="#schedule">예식</a>
-          <a href="#gallery">갤러리</a>
-          <a href="#location">오시는 길</a>
-          <a href="#accounts">마음 전하실 곳</a>
-          <a href="#rsvp">참석 의사</a>
+        <nav class="quick-nav" aria-label="Quick links">
+          <a href="#intro">Invitation</a>
+          <a href="#schedule">Ceremony</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#story">Our Story</a>
         </nav>
       </header>
 
       <main>
         <section class="section-card" id="intro">
-          <p class="section-tag">초대의 글</p>
-          <h2 class="section-title">귀한 걸음으로 축복해 주세요</h2>
+          <p class="section-tag">Invitation</p>
+          <h2 class="section-title">We'd love for you to join us</h2>
           <p class="lead" id="invitationMessage"></p>
 
           <div class="family-grid">
             <article class="family-card">
-              <p class="family-role">신랑측</p>
+              <p class="family-role">Groom's Side</p>
               <h3 class="family-name" id="groomFullName"></h3>
               <p class="family-parents" id="groomParents"></p>
               <div class="contact-stack">
                 <div class="contact-item">
-                  <span class="contact-label">신랑</span>
+                  <span class="contact-label">Groom</span>
                   <div class="contact-row">
-                    <a class="icon-button" id="groomPhoneLink" href="#" aria-label="신랑에게 전화하기"></a>
-                    <a class="icon-button" id="groomSmsLink" href="#" aria-label="신랑에게 문자 보내기"></a>
+                    <a class="icon-button" id="groomPhoneLink" href="#" aria-label="Call the groom"></a>
+                    <a class="icon-button" id="groomSmsLink" href="#" aria-label="Text the groom"></a>
                   </div>
                 </div>
                 <div class="contact-item">
-                  <span class="contact-label">혼주</span>
+                  <span class="contact-label">Parents</span>
                   <div class="contact-row">
-                    <a class="icon-button" id="groomParentPhoneLink" href="#" aria-label="신랑측 혼주에게 전화하기"></a>
-                    <a class="icon-button" id="groomParentSmsLink" href="#" aria-label="신랑측 혼주에게 문자 보내기"></a>
+                    <a class="icon-button" id="groomParentPhoneLink" href="#" aria-label="Call the groom's parents"></a>
+                    <a class="icon-button" id="groomParentSmsLink" href="#" aria-label="Text the groom's parents"></a>
                   </div>
                 </div>
               </div>
             </article>
 
             <article class="family-card">
-              <p class="family-role">신부측</p>
+              <p class="family-role">Bride's Side</p>
               <h3 class="family-name" id="brideFullName"></h3>
               <p class="family-parents" id="brideParents"></p>
               <div class="contact-stack">
                 <div class="contact-item">
-                  <span class="contact-label">신부</span>
+                  <span class="contact-label">Bride</span>
                   <div class="contact-row">
-                    <a class="icon-button" id="bridePhoneLink" href="#" aria-label="신부에게 전화하기"></a>
-                    <a class="icon-button" id="brideSmsLink" href="#" aria-label="신부에게 문자 보내기"></a>
+                    <a class="icon-button" id="bridePhoneLink" href="#" aria-label="Call the bride"></a>
+                    <a class="icon-button" id="brideSmsLink" href="#" aria-label="Text the bride"></a>
                   </div>
                 </div>
                 <div class="contact-item">
-                  <span class="contact-label">혼주</span>
+                  <span class="contact-label">Parents</span>
                   <div class="contact-row">
-                    <a class="icon-button" id="brideParentPhoneLink" href="#" aria-label="신부측 혼주에게 전화하기"></a>
-                    <a class="icon-button" id="brideParentSmsLink" href="#" aria-label="신부측 혼주에게 문자 보내기"></a>
+                    <a class="icon-button" id="brideParentPhoneLink" href="#" aria-label="Call the bride's parents"></a>
+                    <a class="icon-button" id="brideParentSmsLink" href="#" aria-label="Text the bride's parents"></a>
                   </div>
                 </div>
               </div>
@@ -120,18 +118,18 @@
         </section>
 
         <section class="section-card" id="schedule">
-          <p class="section-tag">예식 정보</p>
-          <h2 class="section-title">언제 어디서 만나나요</h2>
+          <p class="section-tag">Ceremony</p>
+          <h2 class="section-title">When and where</h2>
 
           <div class="info-stack">
             <article class="info-card">
-              <p class="info-label">예식 일시</p>
+              <p class="info-label">Date &amp; Time</p>
               <strong class="info-value" id="ceremonySummary"></strong>
               <p class="info-description" id="ceremonyDescription"></p>
             </article>
 
             <article class="info-card">
-              <p class="info-label">예식 장소</p>
+              <p class="info-label">Venue</p>
               <strong class="info-value" id="venueName"></strong>
               <p class="info-description" id="venueAddress"></p>
             </article>
@@ -140,7 +138,7 @@
           <article class="countdown-card">
             <div class="countdown-head">
               <div>
-                <p class="info-label">예식까지 남은 시간</p>
+                <p class="info-label">Countdown</p>
                 <strong class="countdown-title" id="countdownTitle"></strong>
               </div>
               <span class="countdown-badge" id="countdownBadge"></span>
@@ -148,15 +146,15 @@
             <div class="countdown-grid">
               <div class="countdown-item">
                 <span class="count-value" id="countDays">0</span>
-                <span class="count-label">남은 날</span>
+                <span class="count-label">Days</span>
               </div>
               <div class="countdown-item">
                 <span class="count-value" id="countHours">0</span>
-                <span class="count-label">남은 시간</span>
+                <span class="count-label">Hours</span>
               </div>
               <div class="countdown-item">
                 <span class="count-value" id="countMinutes">0</span>
-                <span class="count-label">남은 분</span>
+                <span class="count-label">Minutes</span>
               </div>
             </div>
           </article>
@@ -164,146 +162,38 @@
           <article class="calendar-card">
             <div class="calendar-head">
               <div>
-                <p class="info-label">예식 달력</p>
+                <p class="info-label">Calendar</p>
                 <strong class="calendar-title" id="calendarTitle"></strong>
               </div>
               <span class="calendar-badge" id="calendarBadge"></span>
             </div>
             <div class="calendar-weekdays" aria-hidden="true">
-              <span>일</span>
-              <span>월</span>
-              <span>화</span>
-              <span>수</span>
-              <span>목</span>
-              <span>금</span>
-              <span>토</span>
+              <span>Sun</span>
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
             </div>
             <div class="calendar-grid" id="calendarGrid"></div>
           </article>
         </section>
 
         <section class="section-card" id="gallery">
-          <p class="section-tag">갤러리</p>
-          <h2 class="section-title">우리의 순간을 담았습니다</h2>
+          <p class="section-tag">Gallery</p>
+          <h2 class="section-title">A few of our moments</h2>
           <p class="section-note" id="galleryNote"></p>
           <div class="gallery-carousel-shell">
-            <div class="gallery-track" id="galleryTrack" aria-label="웨딩 갤러리"></div>
-            <div class="gallery-dots" id="galleryDots" aria-label="갤러리 페이지 선택"></div>
+            <div class="gallery-track" id="galleryTrack" aria-label="Wedding gallery"></div>
+            <div class="gallery-dots" id="galleryDots" aria-label="Select gallery slide"></div>
           </div>
         </section>
 
         <section class="section-card" id="story">
-          <p class="section-tag">우리의 여정</p>
-          <h2 class="section-title">천천히 같은 방향이 되었습니다</h2>
+          <p class="section-tag">Our Story</p>
+          <h2 class="section-title">How we got here</h2>
           <div class="timeline-list" id="timelineList"></div>
-        </section>
-
-        <section class="section-card" id="location">
-          <p class="section-tag">오시는 길</p>
-          <h2 class="section-title">편안한 걸음으로 찾아와 주세요</h2>
-
-          <article class="map-card">
-            <div class="map-art" aria-hidden="true">
-              <span class="map-pin pin-a"></span>
-              <span class="map-pin pin-b"></span>
-              <span class="map-line map-line-a"></span>
-              <span class="map-line map-line-b"></span>
-              <div class="map-center">
-                <strong id="mapVenueName"></strong>
-                <span>예식장 위치 안내</span>
-              </div>
-            </div>
-
-            <div class="map-copy">
-              <strong id="locationAddress"></strong>
-              <p id="locationDetail"></p>
-              <div class="route-buttons">
-                <a class="line-button" id="kakaoMapLink" href="#" rel="noreferrer noopener" target="_blank">카카오맵</a>
-                <a class="line-button" id="naverMapLink" href="#" rel="noreferrer noopener" target="_blank">네이버지도</a>
-                <a class="line-button" id="tmapLink" href="#" rel="noreferrer noopener">티맵</a>
-                <a class="line-button" id="googleMapLink" href="#" rel="noreferrer noopener" target="_blank">구글지도</a>
-                <button class="line-button" id="copyAddressButton" type="button">주소 복사</button>
-              </div>
-            </div>
-          </article>
-
-          <figure class="directions-figure" id="directionsFigure" hidden>
-            <img class="directions-image" id="directionsImage" alt="" />
-            <figcaption class="section-note">직접 업로드한 약도 이미지</figcaption>
-          </figure>
-
-          <div class="notice-grid" id="transportList"></div>
-        </section>
-
-        <section class="section-card" id="notice">
-          <p class="section-tag">안내사항</p>
-          <h2 class="section-title">미리 전해드리는 말씀</h2>
-          <div class="notice-grid" id="noticeList"></div>
-        </section>
-
-        <section class="section-card" id="accounts">
-          <p class="section-tag">마음 전하실 곳</p>
-          <h2 class="section-title">축복의 마음만으로도 충분합니다</h2>
-          <p class="section-note" id="accountNote"></p>
-          <div class="account-list" id="accountList"></div>
-        </section>
-
-        <section class="section-card" id="rsvp">
-          <p class="section-tag">참석 의사</p>
-          <h2 class="section-title">함께해 주실 마음을 남겨 주세요</h2>
-          <p class="section-note" id="rsvpNote"></p>
-
-          <form class="rsvp-form" id="rsvpForm">
-            <label class="field">
-              <span>성함</span>
-              <input id="guestName" name="guestName" type="text" placeholder="성함을 입력해 주세요" required />
-            </label>
-
-            <fieldset class="field">
-              <legend>참석 여부</legend>
-              <div class="radio-group">
-                <label class="radio-pill">
-                  <input type="radio" name="attendance" value="참석" checked />
-                  <span>참석</span>
-                </label>
-                <label class="radio-pill">
-                  <input type="radio" name="attendance" value="불참" />
-                  <span>불참</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <div class="field-row">
-              <label class="field">
-                <span>동행 인원</span>
-                <input name="companions" type="number" min="0" max="9" value="1" />
-              </label>
-
-              <label class="field">
-                <span>식사 여부</span>
-                <select name="meal">
-                  <option value="식사 예정">식사 예정</option>
-                  <option value="식사 안 함">식사 안 함</option>
-                </select>
-              </label>
-            </div>
-
-            <label class="field">
-              <span>전하고 싶은 말</span>
-              <textarea
-                name="message"
-                rows="4"
-                placeholder="축하의 마음을 남겨 주세요"
-              ></textarea>
-            </label>
-
-            <div class="form-actions">
-              <button class="primary-button" type="submit">참석 의사 보내기</button>
-              <button class="secondary-button" id="resetRsvpButton" type="button">입력 초기화</button>
-            </div>
-
-            <p class="save-note" id="saveNote">아직 전달된 참석 의사가 없습니다.</p>
-          </form>
         </section>
       </main>
 
@@ -313,23 +203,23 @@
       </footer>
     </div>
 
-    <div class="bottom-bar" aria-label="빠른 실행">
-      <a class="bottom-action" href="#location">오시는 길</a>
-      <a class="bottom-action" href="#rsvp">참석 의사</a>
-      <button class="bottom-action" id="bottomShareButton" type="button">공유하기</button>
+    <div class="bottom-bar" aria-label="Quick actions">
+      <a class="bottom-action" href="#schedule">Ceremony</a>
+      <a class="bottom-action" href="#gallery">Gallery</a>
+      <button class="bottom-action" id="bottomShareButton" type="button">Share</button>
     </div>
 
     <div class="gallery-viewer" id="galleryViewer" hidden>
       <div class="gallery-viewer-backdrop" id="galleryViewerBackdrop"></div>
-      <div class="gallery-viewer-panel" role="dialog" aria-modal="true" aria-label="갤러리 전체 화면 보기">
+      <div class="gallery-viewer-panel" role="dialog" aria-modal="true" aria-label="Full-screen gallery">
         <div class="gallery-viewer-head">
           <p class="modal-index" id="galleryViewerIndex"></p>
-          <button class="modal-close" id="galleryViewerClose" type="button">닫기</button>
+          <button class="modal-close" id="galleryViewerClose" type="button">Close</button>
         </div>
         <div class="gallery-viewer-viewport" id="galleryViewerTrack"></div>
         <div class="gallery-viewer-controls">
-          <button class="line-button" id="galleryViewerPrev" type="button">이전</button>
-          <button class="line-button" id="galleryViewerNext" type="button">다음</button>
+          <button class="line-button" id="galleryViewerPrev" type="button">Previous</button>
+          <button class="line-button" id="galleryViewerNext" type="button">Next</button>
         </div>
         <div class="gallery-viewer-copy">
           <h3 class="modal-title" id="galleryViewerTitle"></h3>
@@ -342,7 +232,7 @@
 
     <noscript>
       <div class="noscript-banner">
-        원활한 이용을 위해 브라우저의 자바스크립트를 켜 주세요.
+        Please enable JavaScript in your browser for the best experience.
       </div>
     </noscript>
   </body>

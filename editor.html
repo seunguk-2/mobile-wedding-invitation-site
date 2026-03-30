@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <title>모바일 청첩장 편집 페이지</title>
+    <title>Wedding Invitation Editor</title>
     <meta
       name="description"
-      content="모바일 청첩장 콘텐츠를 수정하는 편집 페이지입니다."
+      content="Edit and publish the wedding invitation."
     />
     <meta name="theme-color" content="#f4e9df" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
@@ -26,10 +26,10 @@
     <div class="shell editor-shell">
       <header class="hero" id="top">
         <div class="hero-card editor-hero">
-          <p class="hero-kicker">콘텐츠 편집</p>
-          <h1 class="section-title">모바일 청첩장 편집 페이지</h1>
+          <p class="hero-kicker">Content Editor</p>
+          <h1 class="section-title">Wedding Invitation Editor</h1>
           <p class="section-note editor-note">
-            이 페이지에서 초대장 초안을 저장하고, 원하면 GitHub Pages 공개 페이지까지 바로 발행할 수 있습니다. `저장`은 이 기기 초안용이고 `공개 발행`은 공유 링크에 반영됩니다.
+            Use this page to update the invitation draft and publish it to the live shared page. `Save Changes` keeps a draft in this browser, while `Publish Live` updates the public link.
           </p>
           <div class="hero-actions editor-actions">
             <a
@@ -38,105 +38,101 @@
               target="_blank"
               rel="noreferrer noopener"
             >
-              초대장 미리 보기
+              Preview Invitation
             </a>
             <button class="primary-button" id="saveInvitationButton" type="button">
-              변경 내용 저장
+              Save Changes
             </button>
             <button class="secondary-button" id="resetInvitationButton" type="button">
-              기본값으로 복원
+              Reset to Defaults
             </button>
             <button class="secondary-button" id="exportInvitationButton" type="button">
-              JSON 내보내기
+              Export JSON
             </button>
             <button class="secondary-button" id="importInvitationButton" type="button">
-              JSON 불러오기
+              Import JSON
             </button>
           </div>
           <p class="save-note editor-status" id="editorStatus"></p>
         </div>
 
-        <nav class="quick-nav" aria-label="편집 섹션 바로가기">
-          <a href="#publish">발행</a>
-          <a href="#basic">기본</a>
-          <a href="#media">비주얼</a>
-          <a href="#family">양가 정보</a>
-          <a href="#schedule">예식 정보</a>
-          <a href="#guide">안내 문구</a>
-          <a href="#gallery">갤러리</a>
-          <a href="#story">우리의 여정</a>
-          <a href="#accounts">계좌 안내</a>
-          <a href="#rsvp">RSVP</a>
+        <nav class="quick-nav" aria-label="Editor section links">
+          <a href="#publish">Publish</a>
+          <a href="#basic">Basics</a>
+          <a href="#media">Hero Image</a>
+          <a href="#family">Family</a>
+          <a href="#schedule">Ceremony</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#story">Our Story</a>
         </nav>
       </header>
 
       <main class="editor-main">
         <section class="section-card" id="publish">
-          <p class="section-tag">공개 발행</p>
-          <h2 class="section-title">공유 링크에 바로 반영합니다</h2>
+          <p class="section-tag">Publish</p>
+          <h2 class="section-title">Update the live shared page</h2>
           <p class="section-note">
-            편집기는 보호된 서버리스 발행 엔드포인트로만 요청을 보내고, GitHub 토큰은 그 서버 안에만 보관됩니다. 브라우저에는 GitHub 토큰이 내려오지 않습니다.
+            The editor sends publish requests only to your protected serverless endpoint, and the GitHub token stays on that server. The browser never receives the GitHub token.
           </p>
           <div class="editor-split">
             <article class="editor-subpanel">
-              <h3 class="editor-subtitle">발행 연결</h3>
+              <h3 class="editor-subtitle">Publishing Connection</h3>
               <div class="editor-fields">
                 <label class="field">
-                  <span>발행 엔드포인트 URL</span>
+                  <span>Publish Endpoint URL</span>
                   <input
                     id="publishEndpointUrl"
                     type="url"
                     autocomplete="off"
                     autocapitalize="off"
                     spellcheck="false"
-                    placeholder="예: https://wedding-publisher.example.workers.dev/publish"
+                    placeholder="e.g. https://wedding-publisher.example.workers.dev/publish"
                   />
                 </label>
                 <label class="field">
-                  <span>발행 비밀번호</span>
+                  <span>Publish Password</span>
                   <input
                     id="publishPassword"
                     type="password"
                     autocomplete="off"
                     autocapitalize="off"
                     spellcheck="false"
-                    placeholder="서버에 설정한 발행 비밀번호"
+                    placeholder="The publish password configured on your server"
                   />
                 </label>
                 <label class="field">
-                  <span>공개 사이트 주소</span>
+                  <span>Public Site URL</span>
                   <input
                     id="publicSiteUrl"
                     type="url"
                     autocomplete="off"
                     autocapitalize="off"
                     spellcheck="false"
-                    placeholder="예: https://seunguk-2.github.io/mobile-wedding-invitation-site/"
+                    placeholder="e.g. https://seunguk-2.github.io/mobile-wedding-invitation-site/"
                   />
                 </label>
               </div>
               <div class="editor-action-row">
                 <button class="primary-button" id="publishInvitationButton" type="button">
-                  공유 페이지에 발행하기
+                  Publish Live
                 </button>
                 <button class="secondary-button" id="reloadPublishedButton" type="button">
-                  현재 공개본 다시 불러오기
+                  Reload Published Version
                 </button>
               </div>
               <p class="save-note editor-status" id="publishStatus"></p>
             </article>
 
             <article class="editor-subpanel">
-              <h3 class="editor-subtitle">발행 전 확인</h3>
+              <h3 class="editor-subtitle">Before You Publish</h3>
               <div class="editor-checklist">
-                <p>새로 선택한 사진 파일은 `공유 페이지에 발행하기`를 눌러야 실제 사이트에 업로드됩니다.</p>
-                <p>갤러리 이미지는 캐러셀 카드와 전체 화면 스와이프 뷰어로 표시됩니다.</p>
-                <p>GitHub 토큰은 서버리스 엔드포인트 비밀값으로만 저장되고, 이 편집 페이지에는 저장되지 않습니다.</p>
-                <p>RSVP 응답 관리에는 같은 Worker 안의 KV 저장소가 필요합니다.</p>
-                <p>GitHub Pages 반영에는 보통 1~2분 정도 걸릴 수 있습니다.</p>
+                <p>New image files are uploaded to the real site only after you click `Publish Live`.</p>
+                <p>Gallery photos appear as carousel cards and open in the full-screen swipe viewer.</p>
+                <p>Your GitHub token stays in the serverless endpoint secret and is not stored in this editor.</p>
+                <p>GitHub Pages usually takes about 1 to 2 minutes to refresh after publishing.</p>
               </div>
               <p class="section-note editor-link-note">
-                공개 주소
+                Public URL
                 <a
                   class="editor-link"
                   id="publishPreviewLink"
@@ -144,7 +140,7 @@
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  초대장 페이지 열기
+                  Open Invitation
                 </a>
               </p>
             </article>
@@ -152,144 +148,69 @@
         </section>
 
         <section class="section-card" id="basic">
-          <p class="section-tag">기본 정보</p>
-          <h2 class="section-title">초대장 전체 문구를 수정합니다</h2>
+          <p class="section-tag">Basics</p>
+          <h2 class="section-title">Edit the page-wide copy</h2>
           <p class="section-note">
-            제목, 첫 화면 문구, 갤러리 안내, 하단 감사 문구처럼 페이지 전반에서 쓰이는 텍스트입니다.
+            These fields control the title, hero copy, gallery note, and footer text used across the invitation.
           </p>
           <div class="editor-fields" id="basicFields"></div>
         </section>
 
         <section class="section-card" id="media">
-          <p class="section-tag">비주얼</p>
-          <h2 class="section-title">대표 이미지와 약도를 수정합니다</h2>
+          <p class="section-tag">Hero Image</p>
+          <h2 class="section-title">Update the main image</h2>
           <p class="section-note">
-            첫 화면 대표 이미지와 오시는 길 약도 이미지는 여기서 선택하고, 공개 발행 시 실제 공유 페이지에 업로드됩니다.
+            Choose the hero image here. It will be uploaded to the live invitation when you publish.
           </p>
-          <div class="editor-split">
-            <article class="editor-subpanel">
-              <h3 class="editor-subtitle">첫 화면 대표 이미지</h3>
-              <div id="heroMediaEditor"></div>
-            </article>
-            <article class="editor-subpanel">
-              <h3 class="editor-subtitle">오시는 길 약도 이미지</h3>
-              <div id="directionsMediaEditor"></div>
-            </article>
-          </div>
+          <div id="heroMediaEditor"></div>
         </section>
 
         <section class="section-card" id="family">
-          <p class="section-tag">양가 정보</p>
-          <h2 class="section-title">신랑측과 신부측 정보를 수정합니다</h2>
+          <p class="section-tag">Family</p>
+          <h2 class="section-title">Edit the couple and family details</h2>
           <div class="editor-split">
             <article class="editor-subpanel">
-              <h3 class="editor-subtitle">신랑측 정보</h3>
+              <h3 class="editor-subtitle">Groom's Side</h3>
               <div class="editor-fields" id="groomFields"></div>
             </article>
             <article class="editor-subpanel">
-              <h3 class="editor-subtitle">신부측 정보</h3>
+              <h3 class="editor-subtitle">Bride's Side</h3>
               <div class="editor-fields" id="brideFields"></div>
             </article>
           </div>
         </section>
 
         <section class="section-card" id="schedule">
-          <p class="section-tag">예식 정보</p>
-          <h2 class="section-title">일시와 장소를 수정합니다</h2>
+          <p class="section-tag">Ceremony</p>
+          <h2 class="section-title">Edit the ceremony details</h2>
           <p class="section-note">
-            요일과 카운트다운 시각은 저장 시 자동 계산됩니다.
+            The weekday and countdown timing are recalculated automatically when you save or publish.
           </p>
           <div class="editor-split">
             <article class="editor-subpanel">
-              <h3 class="editor-subtitle">예식 일시</h3>
+              <h3 class="editor-subtitle">Date &amp; Time</h3>
               <div class="editor-fields" id="ceremonyFields"></div>
             </article>
             <article class="editor-subpanel">
-              <h3 class="editor-subtitle">예식 장소</h3>
+              <h3 class="editor-subtitle">Venue</h3>
               <div class="editor-fields" id="venueFields"></div>
             </article>
           </div>
         </section>
 
-        <section class="section-card" id="guide">
-          <p class="section-tag">안내 문구</p>
-          <h2 class="section-title">오시는 길과 공지 카드를 수정합니다</h2>
-          <div class="editor-stack">
-            <article class="editor-subpanel">
-              <div class="editor-panel-head">
-                <div>
-                  <h3 class="editor-subtitle">교통 및 이동 안내</h3>
-                  <p class="editor-panel-note">오시는 길 아래에 노출되는 카드들입니다.</p>
-                </div>
-              </div>
-              <div id="transportEditor"></div>
-            </article>
-            <article class="editor-subpanel">
-              <div class="editor-panel-head">
-                <div>
-                  <h3 class="editor-subtitle">추가 안내사항</h3>
-                  <p class="editor-panel-note">포토존, 식사, 아이 동반 안내 같은 카드들입니다.</p>
-                </div>
-              </div>
-              <div id="noticeEditor"></div>
-            </article>
-          </div>
-        </section>
-
         <section class="section-card" id="gallery">
-          <p class="section-tag">갤러리</p>
-          <h2 class="section-title">갤러리 문구와 이미지를 수정합니다</h2>
+          <p class="section-tag">Gallery</p>
+          <h2 class="section-title">Edit gallery copy and images</h2>
           <p class="section-note">
-            각 카드마다 실제 이미지를 선택해 업로드할 수 있습니다. 이미지가 없으면 배경색 카드형 비주얼이 유지됩니다.
+            Each card can use a real image upload. If no image is set, the card keeps its styled color treatment.
           </p>
           <div id="galleryEditor"></div>
         </section>
 
         <section class="section-card" id="story">
-          <p class="section-tag">우리의 여정</p>
-          <h2 class="section-title">타임라인 문구를 수정합니다</h2>
+          <p class="section-tag">Our Story</p>
+          <h2 class="section-title">Edit the story timeline</h2>
           <div id="timelineEditor"></div>
-        </section>
-
-        <section class="section-card" id="accounts">
-          <p class="section-tag">계좌 안내</p>
-          <h2 class="section-title">계좌 그룹과 항목을 수정합니다</h2>
-          <p class="section-note">
-            그룹 제목과 각 계좌의 역할, 예금주, 은행, 계좌번호를 직접 수정할 수 있습니다.
-          </p>
-          <div id="accountEditor"></div>
-        </section>
-
-        <section class="section-card" id="rsvp">
-          <p class="section-tag">참석 의사</p>
-          <h2 class="section-title">저장 위치를 연결하고 응답을 관리합니다</h2>
-          <p class="section-note">
-            공개 페이지의 RSVP는 Cloudflare Worker로 저장되고, 이 섹션에서 최신 응답을 불러와 확인하거나 정리할 수 있습니다.
-          </p>
-          <div class="editor-split">
-            <article class="editor-subpanel">
-              <h3 class="editor-subtitle">RSVP 연결 설정</h3>
-              <div class="editor-fields" id="rsvpSettingsFields"></div>
-            </article>
-            <article class="editor-subpanel">
-              <div class="editor-panel-head">
-                <div>
-                  <h3 class="editor-subtitle">응답 관리</h3>
-                  <p class="editor-panel-note">발행 비밀번호로 서버에 저장된 응답을 불러와 확인합니다.</p>
-                </div>
-              </div>
-              <div class="editor-action-row">
-                <button class="primary-button" id="loadRsvpResponsesButton" type="button">
-                  응답 불러오기
-                </button>
-                <button class="secondary-button" id="exportRsvpResponsesButton" type="button">
-                  CSV 내보내기
-                </button>
-              </div>
-              <p class="save-note editor-status" id="rsvpManagerStatus"></p>
-              <div id="rsvpManagerList"></div>
-            </article>
-          </div>
         </section>
       </main>
     </div>

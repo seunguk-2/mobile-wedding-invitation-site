@@ -5,41 +5,41 @@
   const RSVP_STORAGE_KEY = "wedding-invitation-rsvp";
   const PUBLISH_SETTINGS_STORAGE_KEY = "wedding-invitation-publish-settings-v1";
   const PUBLISHED_CONTENT_PATH = "content.json";
-  const WEEKDAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+  const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   let publishedInvitationCache = null;
 
   const DEFAULT_INVITATION = {
-    title: "민준과 서연의 모바일 청첩장",
+    title: "Minjun & Seoyeon's Wedding Invitation",
     invitationMessage:
-      "서로를 향한 따뜻한 마음으로 같은 길을 걷게 되었습니다. 기쁜 날, 소중한 분들을 모시고 감사의 마음을 전하고자 합니다. 편안한 걸음으로 오셔서 두 사람의 시작을 함께 축복해 주세요.",
+      "With grateful hearts, we are beginning a new chapter together. We would be honored to celebrate this special day with the people we love. Please join us and bless the start of our life together.",
     ui: {
-      heroMessage: "두 사람이 한마음으로 같은 계절을 시작합니다.",
+      heroMessage: "We are stepping into the same season, together.",
       heroImage: "",
-      heroImageAlt: "대표 이미지",
-      heroImageCaption: "소중한 날을 함께 축복해 주세요",
+      heroImageAlt: "Hero image",
+      heroImageCaption: "Please celebrate this special day with us.",
       galleryNote:
-        "사진을 누르면 전체 화면 캐러셀로 넘겨보실 수 있습니다.",
-      accountNote: "참석이 어려우신 분들을 위해 계좌번호를 함께 안내드립니다.",
-      rsvpNote: "참석 여부를 남겨 주시면 예식 준비에 큰 도움이 됩니다.",
-      footerTitle: "민준과 서연의 결혼식에 와 주셔서 감사합니다",
-      footerCopy: "따뜻한 축복과 응원을 오래도록 간직하겠습니다.",
+        "Tap a photo to open the full-screen carousel.",
+      accountNote: "If you are unable to attend, we have included bank details below.",
+      rsvpNote: "Your reply helps us prepare for the day.",
+      footerTitle: "Thank you for celebrating with us",
+      footerCopy: "We will remember your love and support for years to come.",
     },
     groom: {
-      fullName: "김민준",
-      name: "민준",
-      father: "김영호",
-      mother: "이정숙",
-      relationship: "장남",
+      fullName: "Minjun Kim",
+      name: "Minjun",
+      father: "Youngho Kim",
+      mother: "Jungsook Lee",
+      relationship: "eldest son",
       phone: "01012345678",
       parentPhone: "01023456789",
     },
     bride: {
-      fullName: "박서연",
-      name: "서연",
-      father: "박성민",
-      mother: "최은경",
-      relationship: "장녀",
+      fullName: "Seoyeon Park",
+      name: "Seoyeon",
+      father: "Sungmin Park",
+      mother: "Eunkyung Choi",
+      relationship: "eldest daughter",
       phone: "01034567890",
       parentPhone: "01045678901",
     },
@@ -47,150 +47,150 @@
       year: 2026,
       month: 10,
       day: 24,
-      meridiem: "오후",
+      meridiem: "PM",
       hour: 1,
       minute: 0,
-      description: "예식 시작 30분 전부터 여유롭게 입장하실 수 있습니다.",
+      description: "Doors open 30 minutes before the ceremony.",
     },
     venue: {
-      name: "라온제나 그랜드홀",
-      hall: "7층 그레이스홀",
-      address: "서울특별시 중구 세종대로 110",
-      detail: "서울시청역 5번 출구에서 도보 3분",
+      name: "Laonjena Grand Hall",
+      hall: "7F Grace Hall",
+      address: "110 Sejong-daero, Jung-gu, Seoul",
+      detail: "A 3-minute walk from Exit 5 of City Hall Station",
       latitude: "37.5662952",
       longitude: "126.9779451",
       tmapLink: "",
       directionsImage: "",
-      directionsImageAlt: "오시는 길 안내 이미지",
+      directionsImageAlt: "Directions image",
     },
     transport: [
       {
-        title: "지하철 안내",
-        body: "1호선과 2호선 시청역 5번 출구에서 도보 3분 거리입니다.",
+        title: "Subway",
+        body: "The venue is a 3-minute walk from Exit 5 of City Hall Station on Lines 1 and 2.",
       },
       {
-        title: "주차 안내",
-        body: "건물 지하주차장 이용 시 2시간 무료 주차가 가능합니다.",
+        title: "Parking",
+        body: "Complimentary parking is available for up to 2 hours in the building garage.",
       },
       {
-        title: "식사 안내",
-        body: "예식 후 같은 층 연회장에서 식사가 준비되어 있습니다.",
+        title: "Reception Meal",
+        body: "A meal will be served in the banquet hall on the same floor after the ceremony.",
       },
       {
-        title: "셔틀 안내",
-        body: "서울역 3번 출구 앞에서 20분 간격으로 셔틀이 운행됩니다.",
+        title: "Shuttle",
+        body: "A shuttle runs every 20 minutes from Exit 3 of Seoul Station.",
       },
     ],
     notices: [
       {
-        title: "포토존",
-        body: "입구 포토월에서 사진을 남기실 수 있도록 포토존을 준비했습니다.",
+        title: "Photo Zone",
+        body: "A photo wall will be ready at the entrance for you to enjoy.",
       },
       {
-        title: "아이 동반",
-        body: "아이와 함께 오시는 분들을 위해 수유실과 휴게 공간이 마련되어 있습니다.",
+        title: "With Children",
+        body: "A nursing room and resting area will be available for guests coming with children.",
       },
       {
-        title: "예식 순서",
-        body: "본식 이후 간단한 감사 인사와 케이크 커팅이 이어질 예정입니다.",
+        title: "Program",
+        body: "A short thank-you and cake cutting will follow the ceremony.",
       },
       {
-        title: "마음 전하실 곳",
-        body: "참석이 어려우신 분들을 위해 아래에 계좌번호를 함께 안내드립니다.",
+        title: "Blessing Gifts",
+        body: "Bank details are shared below for guests who are unable to attend in person.",
       },
     ],
     gallery: [
       {
-        title: "봄의 약속",
-        caption: "첫 업로드용 사진을 넣으면 이 카드가 실제 이미지로 바뀝니다.",
+        title: "Spring Promise",
+        caption: "Upload your first photo and this card will switch to the real image.",
         tones: ["#d9b7a5", "#b46e5a"],
         image: "",
-        alt: "봄의 약속 갤러리 이미지",
+        alt: "Spring Promise gallery image",
       },
       {
-        title: "여름의 온기",
-        caption: "사진이 없을 때는 감성 카드형 배경으로 표시됩니다.",
+        title: "Summer Warmth",
+        caption: "When no photo is uploaded, this card keeps its editorial color background.",
         tones: ["#d8c1a5", "#7a8d7e"],
         image: "",
-        alt: "여름의 온기 갤러리 이미지",
+        alt: "Summer Warmth gallery image",
       },
       {
-        title: "가을의 산책",
-        caption: "업로드한 사진은 전체 화면 캐러셀로도 넘겨볼 수 있습니다.",
+        title: "Autumn Walk",
+        caption: "Uploaded photos can also be viewed in the full-screen carousel.",
         tones: ["#cfa083", "#895643"],
         image: "",
-        alt: "가을의 산책 갤러리 이미지",
+        alt: "Autumn Walk gallery image",
       },
       {
-        title: "겨울의 대화",
-        caption: "카드 제목과 설명은 사진 위 오버레이로 함께 보입니다.",
+        title: "Winter Conversation",
+        caption: "Each photo keeps its title and caption as an overlay.",
         tones: ["#ced6db", "#7a7b8c"],
         image: "",
-        alt: "겨울의 대화 갤러리 이미지",
+        alt: "Winter Conversation gallery image",
       },
       {
-        title: "우리의 하루",
-        caption: "모바일 화면에서도 손가락으로 자연스럽게 넘길 수 있습니다.",
+        title: "Our Day",
+        caption: "It is designed to feel natural to swipe through on a phone.",
         tones: ["#f0d9cf", "#c58d7d"],
         image: "",
-        alt: "우리의 하루 갤러리 이미지",
+        alt: "Our Day gallery image",
       },
       {
-        title: "함께라는 이름",
-        caption: "나중에 다시 편집 페이지에서 언제든 이미지를 교체할 수 있습니다.",
+        title: "Together",
+        caption: "You can return to the editor later and replace any image at any time.",
         tones: ["#d4d0c3", "#8d735f"],
         image: "",
-        alt: "함께라는 이름 갤러리 이미지",
+        alt: "Together gallery image",
       },
     ],
     timeline: [
       {
-        step: "첫 만남",
-        title: "서로의 일상에 자연스럽게 스며든 날",
-        body: "바쁘게 지나가던 계절 속에서 닮은 웃음과 마음을 발견했습니다.",
+        step: "First Meeting",
+        title: "The day we quietly became part of each other's everyday lives",
+        body: "In the middle of busy seasons, we found familiar laughter and comfort in one another.",
       },
       {
-        step: "약속",
-        title: "평범한 하루를 특별하게 만든 고백",
-        body: "함께하는 미래를 이야기하며 오래 기억할 약속을 나누었습니다.",
+        step: "Promise",
+        title: "The conversation that made an ordinary day unforgettable",
+        body: "As we spoke about our future together, we shared a promise we will remember for a lifetime.",
       },
       {
-        step: "오늘",
-        title: "같은 방향을 바라보며 한 걸음을 내딛는 날",
-        body: "이제 두 사람은 가족이 되어 새로운 계절을 시작합니다.",
+        step: "Today",
+        title: "The day we take one step forward in the same direction",
+        body: "Now we begin a new season together as family.",
       },
     ],
     accounts: [
       {
-        label: "신랑측 마음 전하실 곳",
+        label: "Groom's Side",
         entries: [
           {
-            role: "신랑",
-            holder: "김민준",
-            bank: "국민은행",
+            role: "Groom",
+            holder: "Minjun Kim",
+            bank: "KB Kookmin Bank",
             number: "123-4567-890123",
           },
           {
-            role: "혼주",
-            holder: "김영호",
-            bank: "신한은행",
+            role: "Parents",
+            holder: "Youngho Kim",
+            bank: "Shinhan Bank",
             number: "110-345-678901",
           },
         ],
       },
       {
-        label: "신부측 마음 전하실 곳",
+        label: "Bride's Side",
         entries: [
           {
-            role: "신부",
-            holder: "박서연",
-            bank: "하나은행",
+            role: "Bride",
+            holder: "Seoyeon Park",
+            bank: "Hana Bank",
             number: "357-910111-22207",
           },
           {
-            role: "혼주",
-            holder: "박성민",
-            bank: "우리은행",
+            role: "Parents",
+            holder: "Sungmin Park",
+            bank: "Woori Bank",
             number: "1002-945-112233",
           },
         ],
@@ -198,7 +198,7 @@
     ],
     rsvp: {
       endpointUrl: "https://mobile-wedding-invitation-site.ksu1949.workers.dev/rsvp",
-      adminLabel: "관리 페이지에서 응답을 확인하고 정리할 수 있습니다.",
+      adminLabel: "You can review and manage replies from the editor.",
     },
   };
 
@@ -252,14 +252,22 @@
     };
   }
 
+  function normalizeMeridiem(value, fallback) {
+    const input = asText(value, fallback).trim().toUpperCase();
+    if (input === "AM" || input === "오전") {
+      return "AM";
+    }
+    return "PM";
+  }
+
   function normalizeCeremony(ceremony, fallback) {
-    const meridiem = asText(ceremony && ceremony.meridiem, fallback.meridiem);
+    const meridiem = normalizeMeridiem(ceremony && ceremony.meridiem, fallback.meridiem);
 
     return {
       year: Math.max(2000, Math.trunc(asNumber(ceremony && ceremony.year, fallback.year))),
       month: Math.min(12, Math.max(1, Math.trunc(asNumber(ceremony && ceremony.month, fallback.month)))),
       day: Math.min(31, Math.max(1, Math.trunc(asNumber(ceremony && ceremony.day, fallback.day)))),
-      meridiem: meridiem === "오전" ? "오전" : "오후",
+      meridiem,
       hour: Math.min(12, Math.max(1, Math.trunc(asNumber(ceremony && ceremony.hour, fallback.hour)))),
       minute: Math.min(59, Math.max(0, Math.trunc(asNumber(ceremony && ceremony.minute, fallback.minute)))),
       description: asText(ceremony && ceremony.description, fallback.description),
@@ -383,7 +391,7 @@
   function to24Hour(ceremony) {
     const hour = Math.trunc(asNumber(ceremony.hour, 12));
 
-    if (ceremony.meridiem === "오전") {
+    if (normalizeMeridiem(ceremony.meridiem, "AM") === "AM") {
       return hour === 12 ? 0 : hour;
     }
 

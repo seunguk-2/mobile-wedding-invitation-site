@@ -7,6 +7,21 @@ const galleryViewerState = {
   activeIndex: 0,
 };
 
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 const PHONE_ICON = `
   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.11.37 2.3.56 3.57.56a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.07 21 3 13.93 3 5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.27.19 2.46.56 3.57a1 1 0 0 1-.24 1.02l-2.2 2.2Z" fill="currentColor"></path>
@@ -31,8 +46,6 @@ const elements = {
   heroImageCaption: document.getElementById("heroImageCaption"),
   invitationMessage: document.getElementById("invitationMessage"),
   galleryNote: document.getElementById("galleryNote"),
-  accountNote: document.getElementById("accountNote"),
-  rsvpNote: document.getElementById("rsvpNote"),
   footerTitle: document.getElementById("footerTitle"),
   footerCopy: document.getElementById("footerCopy"),
   groomFullName: document.getElementById("groomFullName"),
@@ -62,25 +75,9 @@ const elements = {
   galleryTrack: document.getElementById("galleryTrack"),
   galleryDots: document.getElementById("galleryDots"),
   timelineList: document.getElementById("timelineList"),
-  mapVenueName: document.getElementById("mapVenueName"),
-  locationAddress: document.getElementById("locationAddress"),
-  locationDetail: document.getElementById("locationDetail"),
-  kakaoMapLink: document.getElementById("kakaoMapLink"),
-  naverMapLink: document.getElementById("naverMapLink"),
-  tmapLink: document.getElementById("tmapLink"),
-  googleMapLink: document.getElementById("googleMapLink"),
-  copyAddressButton: document.getElementById("copyAddressButton"),
-  directionsFigure: document.getElementById("directionsFigure"),
-  directionsImage: document.getElementById("directionsImage"),
-  transportList: document.getElementById("transportList"),
-  noticeList: document.getElementById("noticeList"),
-  accountList: document.getElementById("accountList"),
   shareButton: document.getElementById("shareButton"),
   bottomShareButton: document.getElementById("bottomShareButton"),
   toast: document.getElementById("toast"),
-  rsvpForm: document.getElementById("rsvpForm"),
-  resetRsvpButton: document.getElementById("resetRsvpButton"),
-  saveNote: document.getElementById("saveNote"),
   galleryViewer: document.getElementById("galleryViewer"),
   galleryViewerBackdrop: document.getElementById("galleryViewerBackdrop"),
   galleryViewerTrack: document.getElementById("galleryViewerTrack"),
@@ -110,17 +107,24 @@ function hasUsableHref(value) {
 
 function ceremonyTimeText() {
   const minute = Number(invitation.ceremony.minute) || 0;
-  return minute > 0
-    ? `${invitation.ceremony.meridiem} ${invitation.ceremony.hour}시 ${minute}분`
-    : `${invitation.ceremony.meridiem} ${invitation.ceremony.hour}시`;
+  return `${invitation.ceremony.hour}:${String(minute).padStart(2, "0")} ${invitation.ceremony.meridiem}`;
 }
 
 function ceremonyText() {
-  return `${invitation.ceremony.year}년 ${invitation.ceremony.month}월 ${invitation.ceremony.day}일 ${invitation.ceremony.weekday} ${ceremonyTimeText()}`;
+  return `${invitation.ceremony.weekday}, ${MONTHS[invitation.ceremony.month - 1]} ${invitation.ceremony.day}, ${invitation.ceremony.year} at ${ceremonyTimeText()}`;
 }
 
 function venueText() {
   return joinNonEmpty([invitation.venue.name, invitation.venue.hall], " ");
+}
+
+function familyLine(person) {
+  const relationship = trimText(person.relationship);
+  const parents = joinNonEmpty([trimText(person.father), trimText(person.mother)], " and ");
+  if (relationship && parents) {
+    return `${relationship} of ${parents}`;
+  }
+  return parents;
 }
 
 function showToast(message) {
@@ -167,7 +171,7 @@ function setHeroImage() {
   if (imageUrl) {
     elements.heroImage.hidden = false;
     elements.heroImage.src = imageUrl;
-    elements.heroImage.alt = trimText(invitation.ui.heroImageAlt) || "대표 이미지";
+    elements.heroImage.alt = trimText(invitation.ui.heroImageAlt) || "Hero image";
   } else {
     elements.heroImage.hidden = true;
     elements.heroImage.removeAttribute("src");
@@ -210,66 +214,52 @@ function fillBasicContent() {
   elements.heroMessage.textContent = invitation.ui.heroMessage;
   elements.invitationMessage.textContent = invitation.invitationMessage;
   elements.galleryNote.textContent = invitation.ui.galleryNote;
-  elements.accountNote.textContent = invitation.ui.accountNote;
-  elements.rsvpNote.textContent = invitation.ui.rsvpNote;
   elements.footerTitle.textContent = invitation.ui.footerTitle;
   elements.footerCopy.textContent = invitation.ui.footerCopy;
 
   elements.groomFullName.textContent = invitation.groom.fullName;
   elements.brideFullName.textContent = invitation.bride.fullName;
-  elements.groomParents.textContent = `${invitation.groom.father} · ${invitation.groom.mother}의 ${invitation.groom.relationship}`;
-  elements.brideParents.textContent = `${invitation.bride.father} · ${invitation.bride.mother}의 ${invitation.bride.relationship}`;
+  elements.groomParents.textContent = familyLine(invitation.groom);
+  elements.brideParents.textContent = familyLine(invitation.bride);
 
   setHeroImage();
 
-  setContactLink(elements.groomPhoneLink, invitation.groom.phone, "call", "신랑에게 전화하기");
-  setContactLink(elements.groomSmsLink, invitation.groom.phone, "sms", "신랑에게 문자 보내기");
+  setContactLink(elements.groomPhoneLink, invitation.groom.phone, "call", "Call the groom");
+  setContactLink(elements.groomSmsLink, invitation.groom.phone, "sms", "Text the groom");
   setContactLink(
     elements.groomParentPhoneLink,
     invitation.groom.parentPhone,
     "call",
-    "신랑측 혼주에게 전화하기",
+    "Call the groom's parents",
   );
   setContactLink(
     elements.groomParentSmsLink,
     invitation.groom.parentPhone,
     "sms",
-    "신랑측 혼주에게 문자 보내기",
+    "Text the groom's parents",
   );
-  setContactLink(elements.bridePhoneLink, invitation.bride.phone, "call", "신부에게 전화하기");
-  setContactLink(elements.brideSmsLink, invitation.bride.phone, "sms", "신부에게 문자 보내기");
+  setContactLink(elements.bridePhoneLink, invitation.bride.phone, "call", "Call the bride");
+  setContactLink(elements.brideSmsLink, invitation.bride.phone, "sms", "Text the bride");
   setContactLink(
     elements.brideParentPhoneLink,
     invitation.bride.parentPhone,
     "call",
-    "신부측 혼주에게 전화하기",
+    "Call the bride's parents",
   );
   setContactLink(
     elements.brideParentSmsLink,
     invitation.bride.parentPhone,
     "sms",
-    "신부측 혼주에게 문자 보내기",
+    "Text the bride's parents",
   );
 
   elements.ceremonySummary.textContent = ceremonyText();
   elements.ceremonyDescription.textContent = invitation.ceremony.description;
   elements.venueName.textContent = venueText();
-  elements.venueAddress.textContent = invitation.venue.address;
-
-  elements.mapVenueName.textContent = invitation.venue.name;
-  elements.locationAddress.textContent = joinNonEmpty([venueText(), invitation.venue.address], " · ");
-  elements.locationDetail.textContent = invitation.venue.detail;
-
-  const directionsImageUrl = trimText(invitation.venue.directionsImage);
-  const directionsAlt = trimText(invitation.venue.directionsImageAlt) || "오시는 길 안내 이미지";
-  elements.directionsFigure.hidden = !directionsImageUrl;
-  if (directionsImageUrl) {
-    elements.directionsImage.src = directionsImageUrl;
-    elements.directionsImage.alt = directionsAlt;
-  } else {
-    elements.directionsImage.removeAttribute("src");
-    elements.directionsImage.alt = "";
-  }
+  elements.venueAddress.textContent = joinNonEmpty(
+    [trimText(invitation.venue.address), trimText(invitation.venue.detail)],
+    " · ",
+  );
 }
 
 function renderCalendar() {
@@ -280,8 +270,8 @@ function renderCalendar() {
   const lastDate = new Date(year, monthIndex + 1, 0).getDate();
   const startOffset = firstDay.getDay();
 
-  elements.calendarTitle.textContent = `${year}년 ${invitation.ceremony.month}월`;
-  elements.calendarBadge.textContent = `${eventDay}일 ${invitation.ceremony.weekday}`;
+  elements.calendarTitle.textContent = `${MONTHS[monthIndex]} ${year}`;
+  elements.calendarBadge.textContent = `${invitation.ceremony.weekday}, ${MONTHS[monthIndex]} ${eventDay}`;
   elements.calendarGrid.innerHTML = "";
 
   for (let index = 0; index < startOffset; index += 1) {
@@ -303,7 +293,7 @@ function renderCalendar() {
       cell.classList.add("is-event");
       const note = document.createElement("span");
       note.className = "calendar-note";
-      note.textContent = "예식";
+      note.textContent = "Wedding";
       cell.appendChild(note);
     }
 
@@ -320,8 +310,8 @@ function updateCountdown() {
   const day = hour * 24;
 
   if (diff <= 0) {
-    elements.countdownTitle.textContent = "오늘이 결혼식입니다";
-    elements.countdownBadge.textContent = "축복해 주세요";
+    elements.countdownTitle.textContent = "Today is our wedding day";
+    elements.countdownBadge.textContent = "Celebrate with us";
     elements.countDays.textContent = "0";
     elements.countHours.textContent = "0";
     elements.countMinutes.textContent = "0";
@@ -332,7 +322,7 @@ function updateCountdown() {
   const hours = Math.floor((diff % day) / hour);
   const minutes = Math.floor((diff % hour) / minute);
 
-  elements.countdownTitle.textContent = `${invitation.groom.name} · ${invitation.bride.name}의 결혼식이 다가오고 있습니다`;
+  elements.countdownTitle.textContent = `${invitation.groom.name} & ${invitation.bride.name}'s wedding is getting close`;
   elements.countdownBadge.textContent = `D-${days}`;
   elements.countDays.textContent = String(days);
   elements.countHours.textContent = String(hours);
@@ -354,7 +344,7 @@ function createGalleryCard(item, index, useButton) {
     const image = document.createElement("img");
     image.className = "gallery-image";
     image.src = item.image;
-    image.alt = item.alt || item.title || `갤러리 ${index + 1}`;
+    image.alt = item.alt || item.title || `Gallery image ${index + 1}`;
     image.draggable = false;
     image.loading = "lazy";
     image.decoding = "async";
@@ -465,7 +455,7 @@ function renderGalleryViewerSlides() {
       const image = document.createElement("img");
       image.className = "gallery-viewer-image";
       image.src = item.image;
-      image.alt = item.alt || item.title || `갤러리 ${index + 1}`;
+      image.alt = item.alt || item.title || `Gallery image ${index + 1}`;
       image.loading = "lazy";
       image.decoding = "async";
       image.draggable = false;
@@ -492,7 +482,7 @@ function renderGallery() {
     const dot = document.createElement("button");
     dot.type = "button";
     dot.className = "gallery-dot";
-    dot.setAttribute("aria-label", `갤러리 ${index + 1}번으로 이동`);
+    dot.setAttribute("aria-label", `Go to gallery slide ${index + 1}`);
     dot.addEventListener("click", () => {
       scrollTrackToIndex(elements.galleryTrack, index);
       updateActiveDots(index);
@@ -529,132 +519,10 @@ function renderTimeline() {
   });
 }
 
-function createNoticeCard(item) {
-  const article = document.createElement("article");
-  article.className = "notice-card";
-
-  const title = document.createElement("h3");
-  title.className = "notice-title";
-  title.textContent = item.title;
-
-  const body = document.createElement("p");
-  body.className = "notice-body";
-  body.textContent = item.body;
-
-  article.append(title, body);
-  return article;
-}
-
-function renderTransportAndNotices() {
-  elements.transportList.innerHTML = "";
-  elements.noticeList.innerHTML = "";
-
-  invitation.transport.forEach((item) => {
-    elements.transportList.appendChild(createNoticeCard(item));
-  });
-
-  invitation.notices.forEach((item) => {
-    elements.noticeList.appendChild(createNoticeCard(item));
-  });
-}
-
-function renderAccounts() {
-  elements.accountList.innerHTML = "";
-
-  invitation.accounts.forEach((group, index) => {
-    const details = document.createElement("details");
-    details.className = "account-card";
-    if (index === 0) {
-      details.open = true;
-    }
-
-    const summary = document.createElement("summary");
-    summary.textContent = group.label;
-    details.appendChild(summary);
-
-    const body = document.createElement("div");
-    body.className = "account-body";
-
-    group.entries.forEach((entry) => {
-      const item = document.createElement("div");
-      item.className = "account-entry";
-
-      const role = document.createElement("span");
-      role.className = "account-role";
-      role.textContent = entry.role;
-
-      const holder = document.createElement("strong");
-      holder.className = "account-holder";
-      holder.textContent = entry.holder;
-
-      const number = document.createElement("span");
-      number.className = "account-number";
-      number.textContent = `${entry.bank} ${entry.number}`;
-
-      const copyButton = document.createElement("button");
-      copyButton.className = "line-button";
-      copyButton.type = "button";
-      copyButton.textContent = "계좌번호 복사";
-      copyButton.addEventListener("click", async () => {
-        const succeeded = await copyText(`${entry.bank} ${entry.number} ${entry.holder}`);
-        showToast(
-          succeeded
-            ? `${entry.holder}님의 계좌번호를 복사했습니다`
-            : "복사에 실패했습니다",
-        );
-      });
-
-      item.append(role, holder, number, copyButton);
-      body.appendChild(item);
-    });
-
-    details.appendChild(body);
-    elements.accountList.appendChild(details);
-  });
-}
-
-function hasCoordinates() {
-  return /^-?\d+(\.\d+)?$/u.test(trimText(invitation.venue.latitude)) &&
-    /^-?\d+(\.\d+)?$/u.test(trimText(invitation.venue.longitude));
-}
-
-function buildTmapHref() {
-  if (hasUsableHref(invitation.venue.tmapLink)) {
-    return trimText(invitation.venue.tmapLink);
-  }
-
-  if (hasCoordinates()) {
-    const goalName = encodeURIComponent(venueText() || invitation.venue.name || invitation.venue.address);
-    const goalX = encodeURIComponent(trimText(invitation.venue.longitude));
-    const goalY = encodeURIComponent(trimText(invitation.venue.latitude));
-    return `tmap://route?goalname=${goalName}&goalx=${goalX}&goaly=${goalY}`;
-  }
-
-  const searchName = encodeURIComponent(venueText() || invitation.venue.name || invitation.venue.address);
-  return searchName ? `tmap://search?name=${searchName}` : "";
-}
-
-function buildMapLinks() {
-  const query = encodeURIComponent(joinNonEmpty([invitation.venue.name, invitation.venue.address], " "));
-  elements.kakaoMapLink.href = `https://map.kakao.com/link/search/${query}`;
-  elements.naverMapLink.href = `https://map.naver.com/p/search/${query}`;
-  elements.googleMapLink.href = hasCoordinates()
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${trimText(invitation.venue.latitude)},${trimText(invitation.venue.longitude)}`)}`
-    : `https://www.google.com/maps/search/?api=1&query=${query}`;
-
-  const tmapHref = buildTmapHref();
-  elements.tmapLink.hidden = !tmapHref;
-  if (tmapHref) {
-    elements.tmapLink.href = tmapHref;
-  } else {
-    elements.tmapLink.removeAttribute("href");
-  }
-}
-
 async function shareInvitation() {
   const shareData = {
     title: invitation.title,
-    text: `${invitation.groom.name}과 ${invitation.bride.name}의 결혼식에 초대합니다.`,
+    text: `You're invited to the wedding of ${invitation.groom.name} and ${invitation.bride.name}.`,
     url: window.location.href,
   };
 
@@ -670,102 +538,7 @@ async function shareInvitation() {
   }
 
   const copied = await copyText(window.location.href);
-  showToast(copied ? "현재 주소를 복사했습니다" : "공유를 지원하지 않는 환경입니다");
-}
-
-function updateSaveNote(submission) {
-  if (!submission || !submission.submittedAt) {
-    elements.saveNote.textContent = "아직 전달된 참석 의사가 없습니다.";
-    return;
-  }
-
-  const formatter = new Intl.DateTimeFormat("ko-KR", {
-    dateStyle: "long",
-    timeStyle: "short",
-  });
-
-  const guestName = trimText(submission.guestName) || "하객";
-  elements.saveNote.textContent = `${formatter.format(new Date(submission.submittedAt))} 기준 ${guestName}님의 응답이 정상적으로 전달되었습니다.`;
-}
-
-function getRsvpEndpointUrl() {
-  return trimText(invitation.rsvp && invitation.rsvp.endpointUrl);
-}
-
-async function parseJsonResponse(response) {
-  try {
-    return await response.json();
-  } catch (error) {
-    return null;
-  }
-}
-
-async function submitRsvp(payload) {
-  const endpointUrl = getRsvpEndpointUrl();
-  if (!endpointUrl) {
-    throw new Error("RSVP 저장 엔드포인트가 아직 연결되지 않았습니다.");
-  }
-
-  const response = await window.fetch(endpointUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  const result = await parseJsonResponse(response);
-
-  if (!response.ok) {
-    throw new Error(result && result.error ? result.error : `응답 저장 요청에 실패했습니다. (${response.status})`);
-  }
-
-  return result;
-}
-
-function resetRsvpFormFields() {
-  elements.rsvpForm.reset();
-  const defaultAttendance = elements.rsvpForm.querySelector('input[name="attendance"][value="참석"]');
-  if (defaultAttendance) {
-    defaultAttendance.checked = true;
-  }
-}
-
-function bindRsvpForm() {
-  updateSaveNote(null);
-
-  elements.rsvpForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const formData = new FormData(elements.rsvpForm);
-    const payload = {
-      guestName: trimText(formData.get("guestName")),
-      attendance: trimText(formData.get("attendance")) || "참석",
-      companions: String(formData.get("companions") || "1"),
-      meal: trimText(formData.get("meal")) || "식사 예정",
-      message: trimText(formData.get("message")),
-      sourceUrl: window.location.href,
-    };
-
-    if (!payload.guestName) {
-      showToast("성함을 입력해 주세요");
-      return;
-    }
-
-    try {
-      const result = await submitRsvp(payload);
-      updateSaveNote(result && result.submission ? result.submission : null);
-      resetRsvpFormFields();
-      showToast("참석 의사를 전달했습니다");
-    } catch (error) {
-      showToast(error && error.message ? error.message : "참석 의사 전달에 실패했습니다");
-    }
-  });
-
-  elements.resetRsvpButton.addEventListener("click", () => {
-    resetRsvpFormFields();
-    updateSaveNote(null);
-    showToast("입력 내용을 초기화했습니다");
-  });
+  showToast(copied ? "The page link has been copied." : "Sharing is not supported on this device.");
 }
 
 function rerenderInvitation() {
@@ -774,9 +547,6 @@ function rerenderInvitation() {
   updateCountdown();
   renderGallery();
   renderTimeline();
-  renderTransportAndNotices();
-  renderAccounts();
-  buildMapLinks();
 }
 
 function bindGalleryTrack() {
@@ -836,11 +606,6 @@ function bindEvents() {
   elements.shareButton.addEventListener("click", shareInvitation);
   elements.bottomShareButton.addEventListener("click", shareInvitation);
 
-  elements.copyAddressButton.addEventListener("click", async () => {
-    const succeeded = await copyText(joinNonEmpty([venueText(), invitation.venue.address], " "));
-    showToast(succeeded ? "주소를 복사했습니다" : "복사에 실패했습니다");
-  });
-
   bindGalleryTrack();
   bindGalleryViewer();
 
@@ -848,7 +613,6 @@ function bindEvents() {
     if (event.key === window.WeddingInvitationStore.CONTENT_STORAGE_KEY) {
       invitation = await window.WeddingInvitationStore.loadInvitation();
       rerenderInvitation();
-      updateSaveNote(null);
     }
   });
 }
@@ -872,7 +636,6 @@ function registerServiceWorker() {
 async function init() {
   invitation = await window.WeddingInvitationStore.loadInvitation();
   rerenderInvitation();
-  bindRsvpForm();
   bindEvents();
   registerServiceWorker();
   window.setInterval(updateCountdown, 60 * 1000);

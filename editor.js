@@ -18,21 +18,12 @@ const pendingFiles = {
 const elements = {
   basicFields: document.getElementById("basicFields"),
   heroMediaEditor: document.getElementById("heroMediaEditor"),
-  directionsMediaEditor: document.getElementById("directionsMediaEditor"),
   groomFields: document.getElementById("groomFields"),
   brideFields: document.getElementById("brideFields"),
   ceremonyFields: document.getElementById("ceremonyFields"),
   venueFields: document.getElementById("venueFields"),
-  transportEditor: document.getElementById("transportEditor"),
-  noticeEditor: document.getElementById("noticeEditor"),
   galleryEditor: document.getElementById("galleryEditor"),
   timelineEditor: document.getElementById("timelineEditor"),
-  accountEditor: document.getElementById("accountEditor"),
-  rsvpSettingsFields: document.getElementById("rsvpSettingsFields"),
-  rsvpManagerList: document.getElementById("rsvpManagerList"),
-  loadRsvpResponsesButton: document.getElementById("loadRsvpResponsesButton"),
-  exportRsvpResponsesButton: document.getElementById("exportRsvpResponsesButton"),
-  rsvpManagerStatus: document.getElementById("rsvpManagerStatus"),
   saveInvitationButton: document.getElementById("saveInvitationButton"),
   resetInvitationButton: document.getElementById("resetInvitationButton"),
   exportInvitationButton: document.getElementById("exportInvitationButton"),
@@ -77,7 +68,9 @@ function updatePublishStatus(message) {
 }
 
 function updateRsvpManagerStatus(message) {
-  elements.rsvpManagerStatus.textContent = message;
+  if (elements.rsvpManagerStatus) {
+    elements.rsvpManagerStatus.textContent = message;
+  }
 }
 
 function createFieldShell(labelText) {
@@ -220,7 +213,7 @@ function createItemCard(title, onRemove) {
   head.appendChild(heading);
 
   if (onRemove) {
-    head.appendChild(createMiniButton("삭제", onRemove));
+    head.appendChild(createMiniButton("Remove", onRemove));
   }
 
   article.appendChild(head);
@@ -287,7 +280,7 @@ function createGalleryPreviewCard(item, index) {
     const image = document.createElement("img");
     image.className = "gallery-image";
     image.src = previewSource;
-    image.alt = item.alt || item.title || `갤러리 ${index + 1} 이미지`;
+    image.alt = item.alt || item.title || `Gallery image ${index + 1}`;
     image.loading = "lazy";
     image.decoding = "async";
     image.draggable = false;
@@ -299,11 +292,11 @@ function createGalleryPreviewCard(item, index) {
 
   const title = document.createElement("strong");
   title.className = "gallery-title";
-  title.textContent = item.title || `갤러리 ${index + 1}`;
+  title.textContent = item.title || `Gallery ${index + 1}`;
 
   const caption = document.createElement("span");
   caption.className = "gallery-caption";
-  caption.textContent = item.caption || "설명 문구를 입력하면 이곳에 표시됩니다.";
+  caption.textContent = item.caption || "Add a caption to show text here.";
 
   copy.append(title, caption);
   article.appendChild(copy);
@@ -501,7 +494,7 @@ function persistPublishSettings() {
 function updatePublishPreviewLink() {
   const publicSiteUrl = trimText(elements.publicSiteUrl.value);
   if (!publicSiteUrl) {
-    elements.publishPreviewLink.textContent = "공개 사이트 주소를 입력하면 이곳에 표시됩니다.";
+    elements.publishPreviewLink.textContent = "Enter the public site URL to show it here.";
     elements.publishPreviewLink.href = "./index.html";
     return;
   }
@@ -529,7 +522,7 @@ function setBusy(isBusy) {
     elements.importInvitationButton,
     elements.loadRsvpResponsesButton,
     elements.exportRsvpResponsesButton,
-  ].forEach((button) => {
+  ].filter(Boolean).forEach((button) => {
     button.disabled = isBusy;
   });
 }
@@ -538,7 +531,7 @@ function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => {
-      reject(new Error("이미지 파일을 읽지 못했습니다."));
+      reject(new Error("The image file could not be read."));
     };
     reader.onload = () => {
       const result = String(reader.result || "");
@@ -602,10 +595,10 @@ async function parsePublishError(response) {
       return payload.error;
     }
   } catch (error) {
-    return `발행 엔드포인트 호출에 실패했습니다. (${response.status})`;
+    return `The publish endpoint request failed. (${response.status})`;
   }
 
-  return `발행 엔드포인트 호출에 실패했습니다. (${response.status})`;
+  return `The publish endpoint request failed. (${response.status})`;
 }
 
 async function postPublishRequest(settings, payload) {
@@ -630,14 +623,14 @@ function renderBasicFields() {
 
   appendFields(elements.basicFields, [
     createInputField({
-      label: "브라우저 제목",
+      label: "Page Title",
       value: invitation.title,
       onChange(value) {
         invitation.title = value;
       },
     }),
     createTextareaField({
-      label: "초대의 글",
+      label: "Invitation Message",
       value: invitation.invitationMessage,
       rows: 5,
       onChange(value) {
@@ -645,7 +638,7 @@ function renderBasicFields() {
       },
     }),
     createTextareaField({
-      label: "첫 화면 소개 문구",
+      label: "Hero Message",
       value: invitation.ui.heroMessage,
       rows: 3,
       onChange(value) {
@@ -653,45 +646,29 @@ function renderBasicFields() {
       },
     }),
     createInputField({
-      label: "대표 이미지 캡션",
+      label: "Hero Image Caption",
       value: invitation.ui.heroImageCaption,
       onChange(value) {
         invitation.ui.heroImageCaption = value;
       },
     }),
     createTextareaField({
-      label: "갤러리 안내 문구",
+      label: "Gallery Note",
       value: invitation.ui.galleryNote,
       rows: 3,
       onChange(value) {
         invitation.ui.galleryNote = value;
       },
     }),
-    createTextareaField({
-      label: "계좌 안내 문구",
-      value: invitation.ui.accountNote,
-      rows: 3,
-      onChange(value) {
-        invitation.ui.accountNote = value;
-      },
-    }),
-    createTextareaField({
-      label: "참석 의사 안내 문구",
-      value: invitation.ui.rsvpNote,
-      rows: 3,
-      onChange(value) {
-        invitation.ui.rsvpNote = value;
-      },
-    }),
     createInputField({
-      label: "하단 감사 제목",
+      label: "Footer Title",
       value: invitation.ui.footerTitle,
       onChange(value) {
         invitation.ui.footerTitle = value;
       },
     }),
     createTextareaField({
-      label: "하단 감사 문구",
+      label: "Footer Copy",
       value: invitation.ui.footerCopy,
       rows: 3,
       onChange(value) {
@@ -738,7 +715,7 @@ function renderMediaEditor(kind, container, options) {
     }),
   ]);
 
-  const imageField = createFieldShell("사진 파일 선택");
+  const imageField = createFieldShell("Choose Image File");
   const fileInput = document.createElement("input");
   fileInput.type = "file";
   fileInput.accept = "image/*";
@@ -755,20 +732,20 @@ function renderMediaEditor(kind, container, options) {
     };
 
     if (kind === "hero" && !trimText(invitation.ui.heroImageAlt)) {
-      invitation.ui.heroImageAlt = "대표 이미지";
+      invitation.ui.heroImageAlt = "Hero image";
     }
 
     if (kind === "directions" && !trimText(invitation.venue.directionsImageAlt)) {
-      invitation.venue.directionsImageAlt = "오시는 길 안내 이미지";
+      invitation.venue.directionsImageAlt = "Directions image";
     }
 
     renderMediaEditor(kind, container, options);
-    updateStatus(`${options.statusLabel}를 새로 선택했습니다. 공개 페이지에 반영하려면 발행해 주세요.`);
-    showToast(`${options.statusLabel}를 선택했습니다`);
+    updateStatus(`${options.statusLabel} selected. Publish the page to push it live.`);
+    showToast(`${options.statusLabel} selected`);
   });
   imageField.appendChild(fileInput);
   imageField.appendChild(
-    createHelpText("선택한 새 파일은 이 탭에서만 미리보기로 유지됩니다. 실제 업로드와 공유 반영은 발행 버튼을 눌렀을 때 진행됩니다."),
+    createHelpText("The new file stays as a local preview in this tab until you publish. Uploading to the shared site happens only when you publish."),
   );
   article.appendChild(imageField);
 
@@ -778,12 +755,12 @@ function renderMediaEditor(kind, container, options) {
   const pending = getPendingFile(kind);
   if (pending && pending.file) {
     meta.appendChild(
-      createHelpText(`새로 선택한 파일: ${pending.file.name} · 아직 공개 페이지에는 반영되지 않았습니다.`),
+      createHelpText(`Selected file: ${pending.file.name} · not yet published to the live page.`),
     );
   } else if (previewSource) {
-    meta.appendChild(createHelpText("현재 공개 이미지가 연결되어 있습니다."));
+    meta.appendChild(createHelpText("A published image is currently connected."));
   } else {
-    meta.appendChild(createHelpText("현재 연결된 이미지가 없습니다."));
+    meta.appendChild(createHelpText("No image is currently connected."));
   }
 
   const actions = document.createElement("div");
@@ -791,7 +768,7 @@ function renderMediaEditor(kind, container, options) {
 
   if (pending && pending.file) {
     actions.appendChild(
-      createMiniButton("새 파일 선택 취소", () => {
+      createMiniButton("Undo New File", () => {
         clearPendingFile(kind);
         renderMediaEditor(kind, container, options);
       }),
@@ -800,7 +777,7 @@ function renderMediaEditor(kind, container, options) {
 
   if (pending || previewSource) {
     actions.appendChild(
-      createMiniButton("이미지 비우기", () => {
+      createMiniButton("Clear Image", () => {
         clearPendingFile(kind);
         if (kind === "hero") {
           invitation.ui.heroImage = "";
@@ -826,55 +803,55 @@ function renderPersonFields(container, person) {
 
   appendFields(container, [
     createInputField({
-      label: "성함",
+      label: "Full Name",
       value: person.fullName,
       onChange(value) {
         person.fullName = value;
       },
     }),
     createInputField({
-      label: "첫 화면 표시 이름",
+      label: "Display Name",
       value: person.name,
       onChange(value) {
         person.name = value;
       },
     }),
     createInputField({
-      label: "아버지 성함",
+      label: "Father's Name",
       value: person.father,
       onChange(value) {
         person.father = value;
       },
     }),
     createInputField({
-      label: "어머니 성함",
+      label: "Mother's Name",
       value: person.mother,
       onChange(value) {
         person.mother = value;
       },
     }),
     createInputField({
-      label: "가족 관계 표기",
+      label: "Relationship Label",
       value: person.relationship,
-      placeholder: "예: 장남, 차녀",
+      placeholder: "e.g. eldest son, youngest daughter",
       onChange(value) {
         person.relationship = value;
       },
     }),
     createInputField({
-      label: "본인 연락처",
+      label: "Personal Phone",
       value: person.phone,
       type: "tel",
-      help: "공개 페이지에서는 번호 대신 전화/문자 아이콘만 노출됩니다.",
+      help: "The live page shows call and text icons instead of the raw phone number.",
       onChange(value) {
         person.phone = value;
       },
     }),
     createInputField({
-      label: "혼주 연락처",
+      label: "Parents' Phone",
       value: person.parentPhone,
       type: "tel",
-      help: "공개 페이지에서는 번호 대신 전화/문자 아이콘만 노출됩니다.",
+      help: "The live page shows call and text icons instead of the raw phone number.",
       onChange(value) {
         person.parentPhone = value;
       },
@@ -889,7 +866,7 @@ function renderCeremonyFields() {
   dateGrid.className = "editor-inline-grid";
   appendFields(dateGrid, [
     createInputField({
-      label: "연도",
+      label: "Year",
       value: invitation.ceremony.year,
       type: "number",
       min: 2000,
@@ -898,7 +875,7 @@ function renderCeremonyFields() {
       },
     }),
     createInputField({
-      label: "월",
+      label: "Month",
       value: invitation.ceremony.month,
       type: "number",
       min: 1,
@@ -908,7 +885,7 @@ function renderCeremonyFields() {
       },
     }),
     createInputField({
-      label: "일",
+      label: "Day",
       value: invitation.ceremony.day,
       type: "number",
       min: 1,
@@ -918,18 +895,18 @@ function renderCeremonyFields() {
       },
     }),
     createSelectField({
-      label: "오전/오후",
+      label: "AM / PM",
       value: invitation.ceremony.meridiem,
       options: [
-        { value: "오전", label: "오전" },
-        { value: "오후", label: "오후" },
+        { value: "AM", label: "AM" },
+        { value: "PM", label: "PM" },
       ],
       onChange(value) {
         invitation.ceremony.meridiem = value;
       },
     }),
     createInputField({
-      label: "시",
+      label: "Hour",
       value: invitation.ceremony.hour,
       type: "number",
       min: 1,
@@ -939,7 +916,7 @@ function renderCeremonyFields() {
       },
     }),
     createInputField({
-      label: "분",
+      label: "Minute",
       value: invitation.ceremony.minute,
       type: "number",
       min: 0,
@@ -951,7 +928,7 @@ function renderCeremonyFields() {
   ]);
 
   const description = createTextareaField({
-    label: "예식 설명 문구",
+    label: "Ceremony Description",
     value: invitation.ceremony.description,
     rows: 3,
     onChange(value) {
@@ -967,60 +944,32 @@ function renderVenueFields() {
 
   appendFields(elements.venueFields, [
     createInputField({
-      label: "예식장 이름",
+      label: "Venue Name",
       value: invitation.venue.name,
       onChange(value) {
         invitation.venue.name = value;
       },
     }),
     createInputField({
-      label: "홀 또는 층 정보",
+      label: "Hall or Floor",
       value: invitation.venue.hall,
       onChange(value) {
         invitation.venue.hall = value;
       },
     }),
     createInputField({
-      label: "주소",
+      label: "Address",
       value: invitation.venue.address,
       onChange(value) {
         invitation.venue.address = value;
       },
     }),
     createTextareaField({
-      label: "추가 길 안내",
+      label: "Venue Note",
       value: invitation.venue.detail,
       rows: 3,
       onChange(value) {
         invitation.venue.detail = value;
-      },
-    }),
-    createInputField({
-      label: "위도",
-      value: invitation.venue.latitude,
-      placeholder: "예: 37.5662952",
-      help: "티맵 딥링크를 자동으로 만들 때 사용합니다.",
-      onChange(value) {
-        invitation.venue.latitude = value;
-      },
-    }),
-    createInputField({
-      label: "경도",
-      value: invitation.venue.longitude,
-      placeholder: "예: 126.9779451",
-      help: "티맵 딥링크를 자동으로 만들 때 사용합니다.",
-      onChange(value) {
-        invitation.venue.longitude = value;
-      },
-    }),
-    createInputField({
-      label: "티맵 링크 직접 입력",
-      value: invitation.venue.tmapLink,
-      type: "url",
-      placeholder: "예: tmap://route?... 또는 공유 링크",
-      help: "입력하면 위도/경도보다 이 값을 우선 사용합니다.",
-      onChange(value) {
-        invitation.venue.tmapLink = value;
       },
     }),
   ]);
@@ -1092,12 +1041,12 @@ function handleGalleryFileSelection(index, event) {
   };
 
   if (!trimText(invitation.gallery[index].alt)) {
-    invitation.gallery[index].alt = `${trimText(invitation.gallery[index].title) || `갤러리 ${index + 1}`} 이미지`;
+    invitation.gallery[index].alt = `${trimText(invitation.gallery[index].title) || `Gallery ${index + 1}`} image`;
   }
 
   renderGalleryEditor();
-  updateStatus("갤러리 새 이미지를 선택했습니다. 공개 페이지에 반영하려면 발행해 주세요.");
-  showToast("갤러리 이미지를 선택했습니다");
+  updateStatus("A new gallery image has been selected. Publish the page to push it live.");
+  showToast("Gallery image selected");
 }
 
 function renderGalleryEditor() {
@@ -1107,7 +1056,7 @@ function renderGalleryEditor() {
   wrapper.className = "editor-list";
 
   invitation.gallery.forEach((item, index) => {
-    const article = createItemCard(`갤러리 카드 ${index + 1}`, () => {
+    const article = createItemCard(`Gallery Card ${index + 1}`, () => {
       clearPendingFile("gallery", index);
       invitation.gallery.splice(index, 1);
       pendingFiles.gallery.splice(index, 1);
@@ -1121,14 +1070,14 @@ function renderGalleryEditor() {
 
     appendFields(article, [
       createInputField({
-        label: "카드 제목",
+        label: "Card Title",
         value: item.title,
         onChange(value) {
           item.title = value;
         },
       }),
       createTextareaField({
-        label: "카드 설명",
+        label: "Card Caption",
         value: item.caption,
         rows: 3,
         onChange(value) {
@@ -1136,16 +1085,16 @@ function renderGalleryEditor() {
         },
       }),
       createInputField({
-        label: "이미지 대체 텍스트",
+        label: "Image Alt Text",
         value: item.alt,
-        placeholder: "예: 웨딩 스냅 사진",
+        placeholder: "e.g. Wedding portrait by the window",
         onChange(value) {
           item.alt = value;
         },
       }),
     ]);
 
-    const imageField = createFieldShell("사진 파일 선택");
+    const imageField = createFieldShell("Choose Image File");
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
@@ -1154,7 +1103,7 @@ function renderGalleryEditor() {
     });
     imageField.appendChild(fileInput);
     imageField.appendChild(
-      createHelpText("이제 공개 페이지에서는 캐러셀과 전체 화면 스와이프 갤러리로 표시됩니다."),
+      createHelpText("The live page shows these images in the carousel and full-screen swipe viewer."),
     );
     article.appendChild(imageField);
 
@@ -1162,14 +1111,14 @@ function renderGalleryEditor() {
     colors.className = "editor-color-grid";
     appendFields(colors, [
       createColorField({
-        label: "배경 색상 A",
+        label: "Background Color A",
         value: item.tones[0],
         onChange(value) {
           item.tones[0] = value;
         },
       }),
       createColorField({
-        label: "배경 색상 B",
+        label: "Background Color B",
         value: item.tones[1],
         onChange(value) {
           item.tones[1] = value;
@@ -1184,12 +1133,12 @@ function renderGalleryEditor() {
     const pending = getPendingFile("gallery", index);
     if (pending && pending.file) {
       imageMeta.appendChild(
-        createHelpText(`새로 선택한 파일: ${pending.file.name} · 아직 공개 페이지에는 반영되지 않았습니다.`),
+        createHelpText(`Selected file: ${pending.file.name} · not yet published to the live page.`),
       );
     } else if (item.image) {
-      imageMeta.appendChild(createHelpText("현재 공개 이미지가 연결되어 있습니다."));
+      imageMeta.appendChild(createHelpText("A published image is currently connected."));
     } else {
-      imageMeta.appendChild(createHelpText("현재 연결된 이미지가 없습니다. 이미지가 없으면 배경 카드형 비주얼이 표시됩니다."));
+      imageMeta.appendChild(createHelpText("No image is currently connected. The styled card treatment will be shown instead."));
     }
 
     const actions = document.createElement("div");
@@ -1197,7 +1146,7 @@ function renderGalleryEditor() {
 
     if (pending && pending.file) {
       actions.appendChild(
-        createMiniButton("새 파일 선택 취소", () => {
+        createMiniButton("Undo New File", () => {
           clearPendingFile("gallery", index);
           renderGalleryEditor();
         }),
@@ -1206,7 +1155,7 @@ function renderGalleryEditor() {
 
     if (pending || item.image) {
       actions.appendChild(
-        createMiniButton("이미지 비우기", () => {
+        createMiniButton("Clear Image", () => {
           clearPendingFile("gallery", index);
           item.image = "";
           renderGalleryEditor();
@@ -1227,7 +1176,7 @@ function renderGalleryEditor() {
   const actions = document.createElement("div");
   actions.className = "editor-action-row";
   actions.appendChild(
-    createAddButton("갤러리 카드 추가", () => {
+    createAddButton("Add Gallery Card", () => {
       invitation.gallery.push({
         title: "",
         caption: "",
@@ -1249,28 +1198,28 @@ function renderTimelineEditor() {
   wrapper.className = "editor-list";
 
   invitation.timeline.forEach((item, index) => {
-    const article = createItemCard(`타임라인 ${index + 1}`, () => {
+    const article = createItemCard(`Timeline ${index + 1}`, () => {
       invitation.timeline.splice(index, 1);
       renderTimelineEditor();
     });
 
     appendFields(article, [
       createInputField({
-        label: "단계 이름",
+        label: "Step Label",
         value: item.step,
         onChange(value) {
           item.step = value;
         },
       }),
       createInputField({
-        label: "제목",
+        label: "Title",
         value: item.title,
         onChange(value) {
           item.title = value;
         },
       }),
       createTextareaField({
-        label: "설명",
+        label: "Description",
         value: item.body,
         rows: 3,
         onChange(value) {
@@ -1287,7 +1236,7 @@ function renderTimelineEditor() {
   const actions = document.createElement("div");
   actions.className = "editor-action-row";
   actions.appendChild(
-    createAddButton("타임라인 추가", () => {
+    createAddButton("Add Timeline Entry", () => {
       invitation.timeline.push({ step: "", title: "", body: "" });
       renderTimelineEditor();
     }),
@@ -1716,39 +1665,20 @@ function downloadRsvpCsv() {
 }
 
 function renderAll() {
-  document.title = `${invitation.title} 편집`;
+  document.title = `${invitation.title} Editor`;
   renderBasicFields();
   renderMediaEditor("hero", elements.heroMediaEditor, {
-    emptyText: "첫 화면 대표 이미지를 추가해 주세요.",
-    altLabel: "대표 이미지 대체 텍스트",
-    statusLabel: "대표 이미지",
+    emptyText: "Add the main hero image here.",
+    altLabel: "Hero Image Alt Text",
+    statusLabel: "Hero image",
     wide: false,
-  });
-  renderMediaEditor("directions", elements.directionsMediaEditor, {
-    emptyText: "오시는 길 약도 이미지를 추가해 주세요.",
-    altLabel: "약도 이미지 대체 텍스트",
-    statusLabel: "약도 이미지",
-    wide: true,
   });
   renderPersonFields(elements.groomFields, invitation.groom);
   renderPersonFields(elements.brideFields, invitation.bride);
   renderCeremonyFields();
   renderVenueFields();
-  renderTextCardList(elements.transportEditor, invitation.transport, {
-    itemLabel: "교통 안내",
-    addLabel: "교통 안내 추가",
-    render: renderAll,
-  });
-  renderTextCardList(elements.noticeEditor, invitation.notices, {
-    itemLabel: "안내 카드",
-    addLabel: "안내 카드 추가",
-    render: renderAll,
-  });
   renderGalleryEditor();
   renderTimelineEditor();
-  renderAccountsEditor();
-  renderRsvpSettingsFields();
-  renderRsvpManagerList();
 }
 
 function ensureDefaultRsvpEndpoint() {
@@ -1766,22 +1696,22 @@ function saveInvitation() {
   renderAll();
 
   if (!result.success) {
-    updateStatus("저장에 실패했습니다. 브라우저 저장소 접근 권한을 확인해 주세요.");
-    showToast("저장에 실패했습니다");
+    updateStatus("Save failed. Please check whether this browser can access local storage.");
+    showToast("Save failed");
     return;
   }
 
   const pendingCount = countPendingUploads();
   if (pendingCount > 0) {
-    updateStatus(`편집 내용을 저장했습니다. 새 이미지 ${pendingCount}개는 이 탭에만 남아 있으며, 공개 반영은 발행 버튼을 눌러야 합니다.`);
+    updateStatus(`Changes saved. ${pendingCount} new image file(s) remain local to this tab until you publish.`);
   } else {
-    updateStatus("편집 내용을 저장했습니다. 초대장 페이지를 새로고침하면 이 기기 초안이 반영됩니다.");
+    updateStatus("Changes saved. Refresh the invitation page to preview this browser draft.");
   }
-  showToast("편집 내용을 저장했습니다");
+  showToast("Changes saved");
 }
 
 function resetInvitation() {
-  const confirmed = window.confirm("저장된 편집값을 지우고 기본 예시값으로 되돌릴까요?");
+  const confirmed = window.confirm("Clear the saved draft and return to the default sample content?");
   if (!confirmed) {
     return;
   }
@@ -1792,10 +1722,10 @@ function resetInvitation() {
   ensureDefaultRsvpEndpoint();
   rsvpResponses = [];
   renderAll();
-  updateStatus("기본 예시값으로 복원했습니다.");
-  updatePublishStatus("공개 발행 전 상태입니다.");
-  updateRsvpManagerStatus("응답 목록을 초기화했습니다.");
-  showToast("기본값으로 복원했습니다");
+  updateStatus("The default sample content has been restored.");
+  updatePublishStatus("Ready to publish when you are.");
+  updateRsvpManagerStatus("");
+  showToast("Defaults restored");
 }
 
 function downloadJsonFile() {
@@ -1809,8 +1739,8 @@ function downloadJsonFile() {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-  updateStatus("현재 편집값을 JSON 파일로 내보냈습니다.");
-  showToast("JSON 파일을 다운로드했습니다");
+  updateStatus("The current editor state has been exported as JSON.");
+  showToast("JSON downloaded");
 }
 
 function importJsonFile(event) {
@@ -1826,11 +1756,11 @@ function importJsonFile(event) {
       clearAllPendingFiles();
       invitation = store.cloneInvitation(result.invitation);
       renderAll();
-      updateStatus("JSON 파일을 불러와 저장했습니다.");
-      showToast("JSON 파일을 불러왔습니다");
+      updateStatus("The JSON file has been imported and saved.");
+      showToast("JSON imported");
     } catch (error) {
-      updateStatus("JSON 형식을 읽지 못했습니다. 내보낸 파일인지 확인해 주세요.");
-      showToast("JSON 파일을 읽지 못했습니다");
+      updateStatus("The JSON file could not be read. Make sure it is a valid exported invitation file.");
+      showToast("Could not read the JSON file");
     }
 
     elements.importFileInput.value = "";
@@ -1842,14 +1772,14 @@ function importJsonFile(event) {
 async function publishInvitation() {
   const settings = persistPublishSettings();
   if (!settings.endpointUrl) {
-    updatePublishStatus("발행 엔드포인트 URL을 입력해 주세요.");
-    showToast("발행 엔드포인트 URL이 필요합니다");
+    updatePublishStatus("Enter the publish endpoint URL.");
+    showToast("Publish endpoint URL is required");
     return;
   }
 
   if (!settings.publishPassword) {
-    updatePublishStatus("발행 비밀번호를 입력해 주세요.");
-    showToast("발행 비밀번호가 필요합니다");
+    updatePublishStatus("Enter the publish password.");
+    showToast("Publish password is required");
     return;
   }
 
@@ -1860,7 +1790,7 @@ async function publishInvitation() {
   renderAll();
 
   setBusy(true);
-  updatePublishStatus("보호된 서버리스 엔드포인트로 발행 요청을 보내는 중입니다.");
+  updatePublishStatus("Sending the publish request to the protected serverless endpoint.");
 
   try {
     const payload = await buildPublishRequestPayload();
@@ -1885,36 +1815,36 @@ async function publishInvitation() {
         ? response.uploadedSlots.length
         : 0;
 
-    updateStatus("초안과 공개본을 함께 갱신했습니다.");
+    updateStatus("Both the local draft and the published version have been updated.");
     updatePublishStatus(
       uploadedCount > 0
-        ? `이미지 ${uploadedCount}개와 초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.`
-        : "초대장 내용을 발행했습니다. GitHub Pages 반영까지 1~2분 정도 걸릴 수 있습니다.",
+        ? `Published the invitation and ${uploadedCount} image file(s). GitHub Pages may take about 1 to 2 minutes to refresh.`
+        : "Published the invitation content. GitHub Pages may take about 1 to 2 minutes to refresh.",
     );
 
-    showToast("공유 페이지 발행을 시작했습니다");
+    showToast("Live publish started");
   } catch (error) {
-    updatePublishStatus(`발행에 실패했습니다. ${error.message}`);
-    showToast("공개 발행에 실패했습니다");
+    updatePublishStatus(`Publish failed. ${error.message}`);
+    showToast("Live publish failed");
   } finally {
     setBusy(false);
   }
 }
 
 async function reloadPublishedInvitation() {
-  const confirmed = window.confirm("현재 편집 중인 내용을 덮어쓰고 공개된 초대장 내용을 다시 불러올까요?");
+  const confirmed = window.confirm("Replace the current draft with the latest published invitation?");
   if (!confirmed) {
     return;
   }
 
   setBusy(true);
-  updatePublishStatus("현재 공개본을 다시 불러오는 중입니다.");
+  updatePublishStatus("Reloading the published invitation.");
 
   try {
     store.clearPublishedCache();
     const published = await store.fetchPublishedInvitation({ force: true });
     if (!published) {
-      throw new Error("현재 공개된 content.json을 찾지 못했습니다.");
+      throw new Error("The published content.json file could not be found.");
     }
 
     clearAllPendingFiles();
@@ -1922,12 +1852,12 @@ async function reloadPublishedInvitation() {
     ensureDefaultRsvpEndpoint();
     store.saveInvitation(invitation);
     renderAll();
-    updateStatus("현재 공개본 기준으로 편집 초안을 다시 맞췄습니다.");
-    updatePublishStatus("현재 공개본을 다시 불러왔습니다.");
-    showToast("공개본을 불러왔습니다");
+    updateStatus("The editor draft has been aligned to the published version.");
+    updatePublishStatus("The published version has been reloaded.");
+    showToast("Published version loaded");
   } catch (error) {
-    updatePublishStatus(`공개본을 불러오지 못했습니다. ${error.message}`);
-    showToast("공개본을 불러오지 못했습니다");
+    updatePublishStatus(`Could not reload the published version. ${error.message}`);
+    showToast("Could not reload the published version");
   } finally {
     setBusy(false);
   }
@@ -1960,8 +1890,12 @@ function bindEvents() {
   elements.importFileInput.addEventListener("change", importJsonFile);
   elements.publishInvitationButton.addEventListener("click", publishInvitation);
   elements.reloadPublishedButton.addEventListener("click", reloadPublishedInvitation);
-  elements.loadRsvpResponsesButton.addEventListener("click", loadRsvpResponses);
-  elements.exportRsvpResponsesButton.addEventListener("click", downloadRsvpCsv);
+  if (elements.loadRsvpResponsesButton) {
+    elements.loadRsvpResponsesButton.addEventListener("click", loadRsvpResponses);
+  }
+  if (elements.exportRsvpResponsesButton) {
+    elements.exportRsvpResponsesButton.addEventListener("click", downloadRsvpCsv);
+  }
 
   [elements.publishEndpointUrl, elements.publicSiteUrl].forEach((input) => {
     input.addEventListener("input", () => {
@@ -1978,13 +1912,13 @@ function bindEvents() {
       invitation = store.getInvitation();
       ensureDefaultRsvpEndpoint();
       renderAll();
-      updateStatus("다른 탭에서 저장된 편집값을 다시 불러왔습니다.");
+      updateStatus("A saved draft from another tab has been reloaded.");
       return;
     }
 
     if (event.key === store.PUBLISH_SETTINGS_STORAGE_KEY) {
       hydratePublishSettings();
-      updatePublishStatus("다른 탭에서 발행 설정이 업데이트되었습니다.");
+      updatePublishStatus("Publishing settings were updated in another tab.");
     }
   });
 }
@@ -1998,12 +1932,12 @@ async function init() {
   bindEvents();
 
   if (hasLocalDraft) {
-    updateStatus("이 기기에 저장된 편집 초안을 불러왔습니다.");
+    updateStatus("A saved draft from this browser has been loaded.");
   } else {
-    updateStatus("현재 공개본 또는 기본 예시값을 불러왔습니다.");
+    updateStatus("Loaded the published invitation or the default sample content.");
   }
-  updatePublishStatus("서버리스 발행 엔드포인트를 연결하면 공개 페이지를 갱신할 수 있습니다.");
-  updateRsvpManagerStatus("응답을 불러오면 여기에서 관리할 수 있습니다.");
+  updatePublishStatus("Connect the serverless publish endpoint to update the live invitation.");
+  updateRsvpManagerStatus("");
 }
 
 init();

@@ -1,12 +1,12 @@
 {
-  "name": "민준과 서연의 모바일 청첩장",
-  "short_name": "모바일 청첩장",
-  "description": "민준과 서연의 결혼식에 초대합니다.",
+  "name": "Wedding Invitation",
+  "short_name": "Invitation",
+  "description": "You are warmly invited to celebrate our wedding.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f6eee6",
   "theme_color": "#f4e9df",
-  "lang": "ko",
+  "lang": "en",
   "icons": [
     {
       "src": "assets/icon.svg",
