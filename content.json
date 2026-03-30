@@ -13,8 +13,8 @@
     "footerCopy": "따뜻한 축복과 응원을 오래도록 간직하겠습니다."
   },
   "groom": {
-    "fullName": "김승욱",
-    "name": "승욱",
+    "fullName": "SeungUk Kim",
+    "name": "SeungUk",
     "father": "김태인",
     "mother": "이경희",
     "relationship": "장남",
@@ -22,8 +22,8 @@
     "parentPhone": "01023456789"
   },
   "bride": {
-    "fullName": "서지원",
-    "name": "지원",
+    "fullName": "Jiwon Suh",
+    "name": "Jiwon",
     "father": "서윤교",
     "mother": "최영희",
     "relationship": "장녀",
@@ -40,10 +40,10 @@
     "description": "예식 시작 30분 전부터 여유롭게 입장하실 수 있습니다."
   },
   "venue": {
-    "name": "더채플앳청담",
-    "hall": "6층 채플홀",
+    "name": "The Chapel at Cheongdam",
+    "hall": "Chapel Hall, 6th floor ",
     "address": "",
-    "detail": "서울시청역 5번 출구에서 도보 3분",
+    "detail": "",
     "latitude": "37.5662952",
     "longitude": "126.9779451",
     "tmapLink": "",
