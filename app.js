@@ -36,6 +36,7 @@ const SMS_ICON = `
 
 const elements = {
   metaDescription: document.querySelector('meta[name="description"]'),
+  heroMonogram: document.getElementById("heroMonogram"),
   heroDate: document.getElementById("heroDate"),
   groomName: document.getElementById("groomName"),
   brideName: document.getElementById("brideName"),
@@ -76,7 +77,6 @@ const elements = {
   galleryDots: document.getElementById("galleryDots"),
   timelineList: document.getElementById("timelineList"),
   shareButton: document.getElementById("shareButton"),
-  bottomShareButton: document.getElementById("bottomShareButton"),
   toast: document.getElementById("toast"),
   galleryViewer: document.getElementById("galleryViewer"),
   galleryViewerBackdrop: document.getElementById("galleryViewerBackdrop"),
@@ -118,13 +118,24 @@ function venueText() {
   return joinNonEmpty([invitation.venue.name, invitation.venue.hall], " ");
 }
 
+function uppercaseFirst(text) {
+  const value = trimText(text);
+  return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : "";
+}
+
 function familyLine(person) {
   const relationship = trimText(person.relationship);
   const parents = joinNonEmpty([trimText(person.father), trimText(person.mother)], " and ");
   if (relationship && parents) {
-    return `${relationship} of ${parents}`;
+    return `${uppercaseFirst(relationship)} of ${parents}`;
   }
   return parents;
+}
+
+function heroMonogramText() {
+  const groomInitial = trimText(invitation.groom.name || invitation.groom.fullName).charAt(0).toUpperCase();
+  const brideInitial = trimText(invitation.bride.name || invitation.bride.fullName).charAt(0).toUpperCase();
+  return `${groomInitial}${brideInitial}`.trim();
 }
 
 function showToast(message) {
@@ -207,6 +218,9 @@ function fillBasicContent() {
     elements.metaDescription.content = invitation.invitationMessage;
   }
 
+  if (elements.heroMonogram) {
+    elements.heroMonogram.textContent = heroMonogramText();
+  }
   elements.heroDate.textContent = ceremonyText();
   elements.groomName.textContent = invitation.groom.name;
   elements.brideName.textContent = invitation.bride.name;
@@ -522,7 +536,7 @@ function renderTimeline() {
 async function shareInvitation() {
   const shareData = {
     title: invitation.title,
-    text: `You're invited to the wedding of ${invitation.groom.name} and ${invitation.bride.name}.`,
+    text: `Join us in celebrating the wedding of ${invitation.groom.name} and ${invitation.bride.name}.`,
     url: window.location.href,
   };
 
@@ -604,7 +618,6 @@ function bindGalleryViewer() {
 
 function bindEvents() {
   elements.shareButton.addEventListener("click", shareInvitation);
-  elements.bottomShareButton.addEventListener("click", shareInvitation);
 
   bindGalleryTrack();
   bindGalleryViewer();

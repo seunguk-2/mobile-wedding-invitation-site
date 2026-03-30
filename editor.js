@@ -638,7 +638,7 @@ function renderBasicFields() {
       },
     }),
     createTextareaField({
-      label: "Hero Message",
+      label: "Hero Note",
       value: invitation.ui.heroMessage,
       rows: 3,
       onChange(value) {
@@ -831,9 +831,9 @@ function renderPersonFields(container, person) {
       },
     }),
     createInputField({
-      label: "Relationship Label",
+      label: "Family Line Label",
       value: person.relationship,
-      placeholder: "e.g. eldest son, youngest daughter",
+      placeholder: "e.g. son, daughter",
       onChange(value) {
         person.relationship = value;
       },

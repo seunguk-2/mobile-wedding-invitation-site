@@ -15,6 +15,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Wedding Invitation" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+    />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/icon.svg" />
@@ -29,62 +35,66 @@
 
     <div class="shell">
       <header class="hero" id="top">
-        <div class="hero-card">
-          <p class="hero-kicker">Wedding Invitation</p>
+        <div class="hero-card invitation-hero">
           <div class="hero-layout">
+            <figure class="hero-media" id="heroMedia">
+              <img class="hero-image" id="heroImage" alt="" />
+              <figcaption class="hero-image-caption" id="heroImageCaption"></figcaption>
+            </figure>
+
             <div class="hero-copy">
-              <p class="hero-date" id="heroDate"></p>
+              <div class="hero-monogram" id="heroMonogram" aria-hidden="true"></div>
+              <p class="hero-kicker">Together with their families</p>
               <h1 class="hero-title">
                 <span id="groomName"></span>
                 <span class="hero-connector">&amp;</span>
                 <span id="brideName"></span>
               </h1>
-              <p class="hero-venue" id="heroVenue"></p>
+              <p class="hero-subtitle">invite you to celebrate their wedding</p>
+              <div class="hero-meta">
+                <p class="hero-date" id="heroDate"></p>
+                <p class="hero-venue" id="heroVenue"></p>
+              </div>
               <p class="hero-message" id="heroMessage"></p>
               <div class="hero-actions">
-                <a class="primary-button" href="#intro">View Invitation</a>
+                <a class="primary-button" href="#schedule">See Details</a>
                 <button class="secondary-button" id="shareButton" type="button">
-                  Share
+                  Share Site
                 </button>
               </div>
             </div>
-
-            <figure class="hero-media" id="heroMedia">
-              <img class="hero-image" id="heroImage" alt="" />
-              <figcaption class="hero-image-caption" id="heroImageCaption"></figcaption>
-            </figure>
           </div>
         </div>
 
         <nav class="quick-nav" aria-label="Quick links">
-          <a href="#intro">Invitation</a>
-          <a href="#schedule">Ceremony</a>
-          <a href="#gallery">Gallery</a>
-          <a href="#story">Our Story</a>
+          <a href="#top">Home</a>
+          <a href="#schedule">Details</a>
+          <a href="#gallery">Photos</a>
+          <a href="#story">Story</a>
         </nav>
       </header>
 
       <main>
         <section class="section-card" id="intro">
-          <p class="section-tag">Invitation</p>
-          <h2 class="section-title">We'd love for you to join us</h2>
+          <p class="section-tag">The Invitation</p>
+          <h2 class="section-title">Request the pleasure of your company</h2>
           <p class="lead" id="invitationMessage"></p>
 
           <div class="family-grid">
             <article class="family-card">
-              <p class="family-role">Groom's Side</p>
+              <p class="family-role">The Groom</p>
               <h3 class="family-name" id="groomFullName"></h3>
               <p class="family-parents" id="groomParents"></p>
               <div class="contact-stack">
                 <div class="contact-item">
-                  <span class="contact-label">Groom</span>
+                  <span class="contact-label">Call or Text</span>
                   <div class="contact-row">
                     <a class="icon-button" id="groomPhoneLink" href="#" aria-label="Call the groom"></a>
                     <a class="icon-button" id="groomSmsLink" href="#" aria-label="Text the groom"></a>
                   </div>
                 </div>
                 <div class="contact-item">
-                  <span class="contact-label">Parents</span>
+                  <span class="contact-label">Family Contact</span>
                   <div class="contact-row">
                     <a class="icon-button" id="groomParentPhoneLink" href="#" aria-label="Call the groom's parents"></a>
                     <a class="icon-button" id="groomParentSmsLink" href="#" aria-label="Text the groom's parents"></a>
@@ -94,19 +104,19 @@
             </article>
 
             <article class="family-card">
-              <p class="family-role">Bride's Side</p>
+              <p class="family-role">The Bride</p>
               <h3 class="family-name" id="brideFullName"></h3>
               <p class="family-parents" id="brideParents"></p>
               <div class="contact-stack">
                 <div class="contact-item">
-                  <span class="contact-label">Bride</span>
+                  <span class="contact-label">Call or Text</span>
                   <div class="contact-row">
                     <a class="icon-button" id="bridePhoneLink" href="#" aria-label="Call the bride"></a>
                     <a class="icon-button" id="brideSmsLink" href="#" aria-label="Text the bride"></a>
                   </div>
                 </div>
                 <div class="contact-item">
-                  <span class="contact-label">Parents</span>
+                  <span class="contact-label">Family Contact</span>
                   <div class="contact-row">
                     <a class="icon-button" id="brideParentPhoneLink" href="#" aria-label="Call the bride's parents"></a>
                     <a class="icon-button" id="brideParentSmsLink" href="#" aria-label="Text the bride's parents"></a>
@@ -118,8 +128,8 @@
         </section>
 
         <section class="section-card" id="schedule">
-          <p class="section-tag">Ceremony</p>
-          <h2 class="section-title">When and where</h2>
+          <p class="section-tag">Wedding Day</p>
+          <h2 class="section-title">Details for the celebration</h2>
 
           <div class="info-stack">
             <article class="info-card">
@@ -181,8 +191,8 @@
         </section>
 
         <section class="section-card" id="gallery">
-          <p class="section-tag">Gallery</p>
-          <h2 class="section-title">A few of our moments</h2>
+          <p class="section-tag">Photos</p>
+          <h2 class="section-title">A few frames from our story</h2>
           <p class="section-note" id="galleryNote"></p>
           <div class="gallery-carousel-shell">
             <div class="gallery-track" id="galleryTrack" aria-label="Wedding gallery"></div>
@@ -192,7 +202,7 @@
 
         <section class="section-card" id="story">
           <p class="section-tag">Our Story</p>
-          <h2 class="section-title">How we got here</h2>
+          <h2 class="section-title">A little of how it all began</h2>
           <div class="timeline-list" id="timelineList"></div>
         </section>
       </main>
@@ -201,12 +211,6 @@
         <p class="footer-title" id="footerTitle"></p>
         <p class="footer-copy" id="footerCopy"></p>
       </footer>
-    </div>
-
-    <div class="bottom-bar" aria-label="Quick actions">
-      <a class="bottom-action" href="#schedule">Ceremony</a>
-      <a class="bottom-action" href="#gallery">Gallery</a>
-      <button class="bottom-action" id="bottomShareButton" type="button">Share</button>
     </div>
 
     <div class="gallery-viewer" id="galleryViewer" hidden>

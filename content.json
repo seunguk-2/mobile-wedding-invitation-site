@@ -1,23 +1,23 @@
 {
-  "title": "Seunguk & Jiwon's Wedding Invitation",
-  "invitationMessage": "The two of us are beginning a new home together.\nAs we make this promise and step into a new chapter,\nwe would be grateful if you could join us,\nwitness this moment,\nand celebrate our beginning with us.",
+  "title": "Seunguk & Jiwon",
+  "invitationMessage": "Together with their families, Seunguk Kim and Jiwon Seo invite you to celebrate as they exchange vows and begin their next chapter together.",
   "ui": {
-    "heroMessage": "With full hearts, we are stepping into the same season together.",
+    "heroMessage": "Join us for a joyful ceremony, dinner, and a beautiful evening of celebration.",
     "heroImage": "",
     "heroImageAlt": "Hero image",
-    "heroImageCaption": "Please celebrate this special day with us.",
-    "galleryNote": "Tap a photo to open the full-screen carousel.",
+    "heroImageCaption": "",
+    "galleryNote": "A few favorite frames from the season that brought us here.",
     "accountNote": "If you are unable to attend, we have included bank details below.",
     "rsvpNote": "Your reply helps us prepare for the day.",
-    "footerTitle": "Thank you for celebrating with us",
-    "footerCopy": "We will hold your love and support close for years to come."
+    "footerTitle": "With love,",
+    "footerCopy": "Seunguk & Jiwon"
   },
   "groom": {
     "fullName": "Seunguk Kim",
     "name": "Seunguk",
     "father": "Taein Kim",
     "mother": "Kyounghee Lee",
-    "relationship": "eldest son",
+    "relationship": "son",
     "phone": "01012345678",
     "parentPhone": "01023456789"
   },
@@ -26,7 +26,7 @@
     "name": "Jiwon",
     "father": "Yoonkyo Seo",
     "mother": "Younghee Choi",
-    "relationship": "eldest daughter",
+    "relationship": "daughter",
     "phone": "01034567890",
     "parentPhone": "01045678901"
   },
@@ -37,7 +37,7 @@
     "meridiem": "PM",
     "hour": 1,
     "minute": 0,
-    "description": "Doors open 30 minutes before the ceremony."
+    "description": "Ceremony begins at 1:00 PM, with dinner and celebration to follow."
   },
   "venue": {
     "name": "The Chapel at Cheongdam",
@@ -88,8 +88,8 @@
   ],
   "gallery": [
     {
-      "title": "Film Frame One",
-      "caption": "A quiet moment from one of our favorite days.",
+      "title": "Engagement Afternoon",
+      "caption": "The start of a season we never wanted to rush through.",
       "tones": [
         "#d9b7a5",
         "#b46e5a"
@@ -98,8 +98,8 @@
       "alt": "Gallery image one"
     },
     {
-      "title": "Film Frame Two",
-      "caption": "Another scene we wanted to keep close.",
+      "title": "Weekend Escape",
+      "caption": "A favorite frame from the ordinary days that turned into something more.",
       "tones": [
         "#d8c1a5",
         "#7a8d7e"
@@ -108,29 +108,29 @@
       "alt": "Gallery image two"
     },
     {
-      "title": "Autumn Walk",
-      "caption": "Uploaded photos can also be viewed in the full-screen carousel.",
+      "title": "City Light",
+      "caption": "A little glimpse of the rhythm we built together.",
       "tones": ["#cfa083", "#895643"],
       "image": "",
       "alt": "Autumn Walk gallery image"
     },
     {
-      "title": "Winter Conversation",
-      "caption": "Each photo keeps its title and caption as an overlay.",
+      "title": "Winter Dinner",
+      "caption": "The kind of evening we wish we could keep replaying forever.",
       "tones": ["#ced6db", "#7a7b8c"],
       "image": "",
       "alt": "Winter Conversation gallery image"
     },
     {
-      "title": "Our Day",
-      "caption": "It is designed to feel natural to swipe through on a phone.",
+      "title": "By the Water",
+      "caption": "One of the quiet moments that still feels like home to us.",
       "tones": ["#f0d9cf", "#c58d7d"],
       "image": "",
       "alt": "Our Day gallery image"
     },
     {
-      "title": "Together",
-      "caption": "You can return to the editor later and replace any image at any time.",
+      "title": "Always Us",
+      "caption": "A final little preview before the day we say yes in front of everyone we love.",
       "tones": [
         "#d4d0c3",
         "#8d735f"
@@ -141,19 +141,19 @@
   ],
   "timeline": [
     {
-      "step": "First Meeting",
-      "title": "The day we naturally became part of each other's everyday lives",
-      "body": "In the middle of busy seasons, we found familiar laughter and comfort in one another."
+      "step": "First Hello",
+      "title": "The beginning felt easy in the best way",
+      "body": "What started as a simple conversation slowly became the part of every day we looked forward to most."
     },
     {
-      "step": "Promise",
-      "title": "The conversation that made an ordinary day unforgettable",
-      "body": "As we spoke about our future together, we shared a promise we will remember for a lifetime."
+      "step": "Fell in Love",
+      "title": "The ordinary days became the ones we wanted to keep",
+      "body": "Weekend walks, long dinners, and familiar laughter turned into a life that already felt shared."
     },
     {
-      "step": "Today",
-      "title": "The day we take one step forward in the same direction",
-      "body": "Now we begin a new season together as family."
+      "step": "Forever",
+      "title": "Now we get to celebrate the next chapter",
+      "body": "We cannot wait to gather with the people we love most and begin married life together."
     }
   ],
   "accounts": [
