@@ -1,32 +1,32 @@
 {
-  "title": "Seunguk & Jiwon",
-  "invitationMessage": "Together with their families, Seunguk Kim and Jiwon Seo invite you to celebrate as they exchange vows and begin their next chapter together.",
+  "title": "승욱과 지원의 모바일 청첩장",
+  "invitationMessage": "저희 두 사람이\n이제 한 가정을 이루고,\n함께 천국을 살아내려 합니다.\n그 시작을 약속하는 순간,\n귀한 시간을 내어 함께 지켜봐주시고\n축복해 주시면 감사하겠습니다.",
   "ui": {
-    "heroMessage": "Join us for a joyful ceremony, dinner, and a beautiful evening of celebration.",
-    "heroImage": "",
+    "heroMessage": "두 사람이 한마음으로 같은 계절을 시작합니다.",
+    "heroImage": "https://seunguk-2.github.io/mobile-wedding-invitation-site/uploads/hero.jpg?v=1774847586649",
     "heroImageAlt": "Hero image",
-    "heroImageCaption": "",
-    "galleryNote": "A few favorite frames from the season that brought us here.",
-    "accountNote": "If you are unable to attend, we have included bank details below.",
-    "rsvpNote": "Your reply helps us prepare for the day.",
-    "footerTitle": "With love,",
-    "footerCopy": "Seunguk & Jiwon"
+    "heroImageCaption": "Please celebrate this special day with us.",
+    "galleryNote": "웨딩 사진을 넣어 따뜻한 순간들을 담아보세요. 갤러리 이미지는 확대 없이 카드 형태로만 보여집니다.",
+    "accountNote": "참석이 어려우신 분들을 위해 계좌번호를 함께 안내드립니다.",
+    "rsvpNote": "현재는 예시용 폼으로 동작하며, 입력 내용은 이 기기에만 저장됩니다.",
+    "footerTitle": "승욱과 지원의 결혼식에 와 주셔서 감사합니다",
+    "footerCopy": "따뜻한 축복과 응원을 오래도록 간직하겠습니다."
   },
   "groom": {
-    "fullName": "Seunguk Kim",
-    "name": "Seunguk",
-    "father": "Taein Kim",
-    "mother": "Kyounghee Lee",
-    "relationship": "son",
+    "fullName": "김승욱",
+    "name": "승욱",
+    "father": "김태인",
+    "mother": "이경희",
+    "relationship": "장남",
     "phone": "01012345678",
     "parentPhone": "01023456789"
   },
   "bride": {
-    "fullName": "Jiwon Seo",
-    "name": "Jiwon",
-    "father": "Yoonkyo Seo",
-    "mother": "Younghee Choi",
-    "relationship": "daughter",
+    "fullName": "서지원",
+    "name": "지원",
+    "father": "서윤교",
+    "mother": "최영희",
+    "relationship": "장녀",
     "phone": "01034567890",
     "parentPhone": "01045678901"
   },
@@ -37,156 +37,165 @@
     "meridiem": "PM",
     "hour": 1,
     "minute": 0,
-    "description": "Ceremony begins at 1:00 PM, with dinner and celebration to follow."
+    "description": "예식 시작 30분 전부터 여유롭게 입장하실 수 있습니다."
   },
   "venue": {
-    "name": "The Chapel at Cheongdam",
-    "hall": "6F Chapel Hall",
+    "name": "더채플앳청담",
+    "hall": "6층 채플홀",
     "address": "",
-    "detail": "",
-    "latitude": "",
-    "longitude": "",
+    "detail": "서울시청역 5번 출구에서 도보 3분",
+    "latitude": "37.5662952",
+    "longitude": "126.9779451",
     "tmapLink": "",
     "directionsImage": "",
     "directionsImageAlt": "Directions image"
   },
   "transport": [
     {
-      "title": "Subway",
-      "body": "The venue is a 3-minute walk from Exit 5 of City Hall Station on Lines 1 and 2."
+      "title": "지하철 안내",
+      "body": "1호선과 2호선 시청역 5번 출구에서 도보 3분 거리입니다."
     },
     {
-      "title": "Parking",
-      "body": "Complimentary parking is available for up to 2 hours in the building garage."
+      "title": "주차 안내",
+      "body": "건물 지하주차장 이용 시 2시간 무료 주차가 가능합니다."
     },
     {
-      "title": "Reception Meal",
-      "body": "A meal will be served in the banquet hall on the same floor after the ceremony."
+      "title": "식사 안내",
+      "body": "예식 후 같은 층 연회장에서 식사가 준비되어 있습니다."
     },
     {
-      "title": "Shuttle",
-      "body": "A shuttle runs every 20 minutes from Exit 3 of Seoul Station."
+      "title": "셔틀 안내",
+      "body": "서울역 3번 출구 앞에서 20분 간격으로 셔틀이 운행됩니다."
     }
   ],
   "notices": [
     {
-      "title": "Photo Zone",
-      "body": "A photo wall will be ready at the entrance for you to enjoy."
+      "title": "포토존",
+      "body": "입구 포토월에서 사진을 남기실 수 있도록 포토존을 준비했습니다."
     },
     {
-      "title": "With Children",
-      "body": "A nursing room and resting area will be available for guests coming with children."
+      "title": "아이 동반",
+      "body": "아이와 함께 오시는 분들을 위해 수유실과 휴게 공간이 마련되어 있습니다."
     },
     {
-      "title": "Program",
-      "body": "A short thank-you and cake cutting will follow the ceremony."
+      "title": "예식 순서",
+      "body": "본식 이후 간단한 감사 인사와 케이크 커팅이 이어질 예정입니다."
     },
     {
-      "title": "Blessing Gifts",
-      "body": "Bank details are shared below for guests who are unable to attend in person."
+      "title": "마음 전하실 곳",
+      "body": "참석이 어려우신 분들을 위해 아래에 계좌번호를 함께 안내드립니다."
     }
   ],
   "gallery": [
     {
-      "title": "Engagement Afternoon",
-      "caption": "The start of a season we never wanted to rush through.",
+      "title": "Test",
+      "caption": "text",
       "tones": [
         "#d9b7a5",
         "#b46e5a"
       ],
       "image": "https://seunguk-2.github.io/mobile-wedding-invitation-site/uploads/gallery-01.png?v=1773779013219",
-      "alt": "Gallery image one"
+      "alt": "봄의 약속 갤러리 이미지"
     },
     {
-      "title": "Weekend Escape",
-      "caption": "A favorite frame from the ordinary days that turned into something more.",
+      "title": "Test 2",
+      "caption": "text2",
       "tones": [
         "#d8c1a5",
         "#7a8d7e"
       ],
       "image": "https://seunguk-2.github.io/mobile-wedding-invitation-site/uploads/gallery-02.jpg?v=1773779013219",
-      "alt": "Gallery image two"
+      "alt": "여름의 온기 갤러리 이미지"
     },
     {
-      "title": "City Light",
-      "caption": "A little glimpse of the rhythm we built together.",
-      "tones": ["#cfa083", "#895643"],
+      "title": "가을의 산책",
+      "caption": "업로드한 사진은 확대 모달 없이 카드로만 노출됩니다.",
+      "tones": [
+        "#cfa083",
+        "#895643"
+      ],
       "image": "",
-      "alt": "Autumn Walk gallery image"
+      "alt": "가을의 산책 갤러리 이미지"
     },
     {
-      "title": "Winter Dinner",
-      "caption": "The kind of evening we wish we could keep replaying forever.",
-      "tones": ["#ced6db", "#7a7b8c"],
+      "title": "겨울의 대화",
+      "caption": "카드 제목과 설명은 사진 위 오버레이로 유지됩니다.",
+      "tones": [
+        "#ced6db",
+        "#7a7b8c"
+      ],
       "image": "",
-      "alt": "Winter Conversation gallery image"
+      "alt": "겨울의 대화 갤러리 이미지"
     },
     {
-      "title": "By the Water",
-      "caption": "One of the quiet moments that still feels like home to us.",
-      "tones": ["#f0d9cf", "#c58d7d"],
+      "title": "우리의 하루",
+      "caption": "모바일 화면에서도 세로형 카드 비율을 유지합니다.",
+      "tones": [
+        "#f0d9cf",
+        "#c58d7d"
+      ],
       "image": "",
-      "alt": "Our Day gallery image"
+      "alt": "우리의 하루 갤러리 이미지"
     },
     {
-      "title": "Always Us",
-      "caption": "A final little preview before the day we say yes in front of everyone we love.",
+      "title": "함께라는 이름",
+      "caption": "나중에 다시 편집 페이지에서 언제든 이미지를 교체할 수 있습니다.",
       "tones": [
         "#d4d0c3",
         "#8d735f"
       ],
       "image": "",
-      "alt": "Together gallery image"
+      "alt": "함께라는 이름 갤러리 이미지"
     }
   ],
   "timeline": [
     {
-      "step": "First Hello",
-      "title": "The beginning felt easy in the best way",
-      "body": "What started as a simple conversation slowly became the part of every day we looked forward to most."
+      "step": "첫 만남",
+      "title": "서로의 일상에 자연스럽게 스며든 날",
+      "body": "바쁘게 지나가던 계절 속에서 닮은 웃음과 마음을 발견했습니다."
     },
     {
-      "step": "Fell in Love",
-      "title": "The ordinary days became the ones we wanted to keep",
-      "body": "Weekend walks, long dinners, and familiar laughter turned into a life that already felt shared."
+      "step": "약속",
+      "title": "평범한 하루를 특별하게 만든 고백",
+      "body": "함께하는 미래를 이야기하며 오래 기억할 약속을 나누었습니다."
     },
     {
-      "step": "Forever",
-      "title": "Now we get to celebrate the next chapter",
-      "body": "We cannot wait to gather with the people we love most and begin married life together."
+      "step": "오늘",
+      "title": "같은 방향을 바라보며 한 걸음을 내딛는 날",
+      "body": "이제 두 사람은 가족이 되어 새로운 계절을 시작합니다."
     }
   ],
   "accounts": [
     {
-      "label": "Groom's Side",
+      "label": "신랑측 마음 전하실 곳",
       "entries": [
         {
-          "role": "Groom",
-          "holder": "Minjun Kim",
-          "bank": "KB Kookmin Bank",
+          "role": "신랑",
+          "holder": "김민준",
+          "bank": "국민은행",
           "number": "123-4567-890123"
         },
         {
-          "role": "Parents",
-          "holder": "Youngho Kim",
-          "bank": "Shinhan Bank",
+          "role": "혼주",
+          "holder": "김영호",
+          "bank": "신한은행",
           "number": "110-345-678901"
         }
       ]
     },
     {
-      "label": "Bride's Side",
+      "label": "신부측 마음 전하실 곳",
       "entries": [
         {
-          "role": "Bride",
-          "holder": "Seoyeon Park",
-          "bank": "Hana Bank",
+          "role": "신부",
+          "holder": "박서연",
+          "bank": "하나은행",
           "number": "357-910111-22207"
         },
         {
-          "role": "Parents",
-          "holder": "Sungmin Park",
-          "bank": "Woori Bank",
+          "role": "혼주",
+          "holder": "박성민",
+          "bank": "우리은행",
           "number": "1002-945-112233"
         }
       ]
